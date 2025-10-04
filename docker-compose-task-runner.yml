@@ -11,7 +11,9 @@ services:
     build: .
     env_file:
       - .env
-    network_mode: host
+    networks:
+      - quants_app_net # Connect to the pre-defined external network
+    command: conda run --no-capture-output -n quants-lab python3 run_tasks.py --config ${TASK_CONFIG:-config/tasks.yml}
     deploy:
       restart_policy:
         condition: on-failure
@@ -21,3 +23,9 @@ services:
       options:
         max-size: "200m"
         max-file: "10"
+
+networks:
+  # Remove the old mongodb_network definition if it was here
+  quants_app_net:
+    external: true
+    name: quants_lab_shared_network # Must match the name defined in docker-compose-db.yml

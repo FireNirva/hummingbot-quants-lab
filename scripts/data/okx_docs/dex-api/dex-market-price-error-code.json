@@ -1,0 +1,37 @@
+{
+  "title": "错误码 | 行情价格 API | 行情 API | DEX API | DEX API 文档 | 欧易",
+  "text": "错误码\n#\n错误码\nHTTP 状态\n提示信息\n0\n200\nSucceeded\n50011\n429\nRate limit reached. Please refer to API documentation and throttle requests accordingly\n50014\n400\nParameter {param0} cannot be empty\n50026\n500\nSystem error. Try again later\n50103\n401\nRequest header \"OK-ACCESS-KEY\" cannot be empty\n50104\n401\nRequest header \"OK-ACCESS-PASSPHRASE\" cannot be empty\n50105\n401\nRequest header \"OK-ACCESS-PASSPHRASE\" incorrect\n50106\n401\nRequest header \"OK-ACCESS-SIGN\" cannot be empty\n50107\n401\nRequest header \"OK-ACCESS-TIMESTAMP\" cannot be empty\n50111\n401\nInvalid OK-ACCESS-KEY\n50112\n401\nInvalid OK-ACCESS-TIMESTAMP\n50113\n401\nInvalid signature\n51000\n400\nParameter {param0} error",
+  "html": "<div class=\"routes_md__xWlGF\"><!--$--><h1 id=\"错误码\">错误码<a class=\"index_header-anchor__Xqb+L\" href=\"#错误码\" style=\"opacity:0\">#</a></h1>\n<div class=\"index_table__kvZz5\"><table><thead><tr><th>错误码</th><th>HTTP 状态</th><th>提示信息</th></tr></thead><tbody><tr><td>0</td><td>200</td><td>Succeeded</td></tr><tr><td>50011</td><td>429</td><td>Rate limit reached. Please refer to API documentation and throttle requests accordingly</td></tr><tr><td>50014</td><td>400</td><td>Parameter {param0} cannot be empty</td></tr><tr><td>50026</td><td>500</td><td>System error. Try again later</td></tr><tr><td>50103</td><td>401</td><td>Request header \"OK-ACCESS-KEY\" cannot be empty</td></tr><tr><td>50104</td><td>401</td><td>Request header \"OK-ACCESS-PASSPHRASE\" cannot be empty</td></tr><tr><td>50105</td><td>401</td><td>Request header \"OK-ACCESS-PASSPHRASE\" incorrect</td></tr><tr><td>50106</td><td>401</td><td>Request header \"OK-ACCESS-SIGN\" cannot be empty</td></tr><tr><td>50107</td><td>401</td><td>Request header \"OK-ACCESS-TIMESTAMP\" cannot be empty</td></tr><tr><td>50111</td><td>401</td><td>Invalid OK-ACCESS-KEY</td></tr><tr><td>50112</td><td>401</td><td>Invalid OK-ACCESS-TIMESTAMP</td></tr><tr><td>50113</td><td>401</td><td>Invalid signature</td></tr><tr><td>51000</td><td>400</td><td>Parameter {param0} error</td></tr></tbody></table></div><!--/$--></div>",
+  "url": "https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-market-price-error-code#错误码",
+  "navigation": {
+    "breadcrumbs": [
+      "DEX API",
+      "行情 API",
+      "错误码"
+    ],
+    "sidebar_links": [
+      "API 参考",
+      "错误码",
+      "Websocket",
+      "API 参考",
+      "错误码",
+      "API 参考",
+      "错误码",
+      "API 参考",
+      "错误码"
+    ],
+    "toc": [
+      "API 参考",
+      "错误码",
+      "Websocket",
+      "API 参考",
+      "错误码",
+      "API 参考",
+      "错误码",
+      "API 参考",
+      "错误码"
+    ]
+  },
+  "word_count": 92,
+  "extract_time": "2025-05-27 03:27:02"
+}

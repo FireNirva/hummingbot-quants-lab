@@ -1,0 +1,500 @@
+# 签名交易 | EVM | 连接浏览器插件钱包 | 接入 Web3 钱包 | DEX API 文档 | 欧易
+
+**URL:** https://web3.okx.com/zh-hans/build/dev-docs/sdks/chains/evm/web-send-transaction  
+**抓取时间:** 2025-05-27 06:32:17  
+**字数:** 412
+
+## 导航路径
+DApp 连接钱包 > EVM > 签名交易
+
+## 目录
+- 什么是连接钱包
+- 支持的网络
+- 接入前提
+- EVM 兼容链
+- Bitcoin 兼容链
+- Solana 兼容链
+- TON
+- SUI
+- Aptos/Movement
+- Cosmos 系/Sei
+- Tron
+- Starknet
+- 常见问题
+- 接入前提
+- EVM 兼容链
+- 获取钱包地址
+- 获取 chainId
+- 添加代币
+- 签名交易
+- 智能合约交互
+- 切换网络
+- Provider API
+- Bitcoin 兼容链
+- Tron
+- Solana 兼容链
+- TON
+- Aptos/Movement
+- Cosmos 系/Sei
+- SUI
+- Stacks
+- Starknet
+- Cardano
+- Nostr
+- NEAR
+- WAX
+- 设置图标
+
+---
+
+签名交易
+#
+eth_sendTransaction
+描述
+交易是区块链上的一个正式动作，在欧易 Web3 钱包中必须通过调用
+eth_sendTransaction
+方法来发起交易。交易可以涉及到简单的以太坊的发送，并可能会发送代币，创建一个新的智能合约，或以任何方式改变区块链上的状态。这些交易一定是由一个来自外部账户的签名，或一个简单的密钥对进行发起的。
+在欧易 Web3 钱包中，通过使用
+okxwallet.request
+方法来发送一个交易将会组成一个类似以下案例的对象：
+参数
+本部分主要介绍关于该文档所涉及的交易参数。该文档中大多数所涉及的交易参数都将由欧易 Web3 钱包处理，具体参数详情如下：
+const
+transactionParameters
+=
+{
+nonce
+:
+'0x00'
+,
+// ignored by OKX
+gasPrice
+:
+'0x09184e72a000'
+,
+// customizable by user during OKX confirmation.
+gas
+:
+'0x2710'
+,
+// customizable by user during OKX confirmation.
+to
+:
+'0x0000000000000000000000000000000000000000'
+,
+// Required except during contract publications.
+from
+:
+okxwallet
+.
+selectedAddress
+,
+// must match user's active address.
+value
+:
+'0x00'
+,
+// Only required to send ether to the recipient from the initiating external account.
+data
+:
+'0x7f7465737432000000000000000000000000000000000000000000000000000000600057'
+,
+// Optional, but used for defining smart contract creation and interaction.
+chainId
+:
+'0x3'
+,
+// Used to prevent transaction reuse across blockchains. Auto-filled by OKX.
+}
+;
+Gas 价格 [可选]
+可选参数 – 建议在私链上使用。
+在以太坊中，每笔交易所消耗的 Gas 都会有一个指定的价格。区块生产者在创建下一个区块时，为了达到利润最大化，会优先处理 Gas 价格较高的交易。这意味着，一个较高的 Gas 价格通常会让你的交易被更快地处理，但代价则是更高的交易费用。请注意，此参数可能不适用于 L2 网络，因为 L2 网络可能有一个恒定的 Gas 价格，甚至不存在 Gas 价格。
+换句话说，虽然你可以在欧易 Web3 钱包的默认网络上忽略这个参数，但是你的应用程序可能会比我们更了解目标网络的参数设定。在我们的默认网络中，欧易 Web3 钱包允许用户在打包交易的时候进行"慢"、"中"和"快"的选择，相对应越来越高的 Gas 溢价。
+Gas 限制 [可选]
+可选参数，并且为 DApp 开发者较少用到的参数。
+Gas 限制是一个可选参数，我们会自动计算出一个合理的 Gas 价格。你应该能了解到所部署的智能合约是否曾因某些原因而受益于该自定义参数。
+To [可选]
+一个十六进制编码的 Ethereum 地址。与收件人进行交易时所需提供的参数（除合约创建外的所有交易）。
+当没有 To 值，但有 data 值时，新合约就会被创建。
+Value [可选]
+要发送的网络本地货币的十六进制编码值。在主 Ethereum 网络中，即
+Ether
+。此值以 wei 计价，即
+1e-18
+ether。
+请注意，这些在以太坊中经常使用的数字比本地 JavaScript 数字的精度要高得多。如果没有提前判定，可能会导致未知的情况。出于这个原因，我们强烈建议你在操作用于区块链的数值时使用
+BN.js
+。
+Data [可选]
+创建智能合约时需要此参数。
+这个数值也用于指定合约方法和它们的参数。你可在
+the solidity ABI spec
+上了解更多关于该数据的编码方式。
+链 ID [目前已忽略]
+链 ID 目前由用户当前选择的网络的
+okxwallet.networkVersion
+中得出。
+返回值
+DATA，32 字节 - 交易哈希，如果交易尚不可用，则为零哈希。
+当你创建合约时，交易被挖掘后，使用
+eth_getTransactionReceipt
+获取合约地址。
+例子
+在
+codeopen
+中打开。
+Connect Ethereum
+Send Transaction
+HTML
+JavaScript
+<
+button
+class
+=
+"
+connectEthereumButton btn
+"
+>
+Connect Ethereum
+</
+button
+>
+<
+button
+class
+=
+"
+signTransactionButton btn
+"
+>
+Send Transaction
+</
+button
+>
+const
+connectEthereumButton
+=
+document
+.
+querySelector
+(
+'.connectEthereumButton'
+)
+;
+const
+signTransactionButton
+=
+document
+.
+querySelector
+(
+'.signTransactionButton'
+)
+;
+let
+accounts
+=
+[
+]
+;
+signTransactionButton
+.
+addEventListener
+(
+'click'
+,
+(
+)
+=>
+{
+okxwallet
+.
+request
+(
+{
+method
+:
+'eth_sendTransaction'
+,
+params
+:
+[
+{
+from
+:
+accounts
+[
+0
+]
+,
+to
+:
+'0x2f318C334780961FB129D2a6c30D0763d9a5C970'
+,
+value
+:
+'0x29a2241af62c0000'
+,
+gasPrice
+:
+'0x09184e72a000'
+,
+gas
+:
+'0x2710'
+,
+}
+,
+]
+,
+}
+)
+.
+then
+(
+(
+txHash
+)
+=>
+console
+.
+log
+(
+txHash
+)
+)
+.
+catch
+(
+(
+error
+)
+=>
+console
+.
+error
+)
+;
+}
+)
+;
+connectEthereumButton
+.
+addEventListener
+(
+'click'
+,
+(
+)
+=>
+{
+getAccount
+(
+)
+;
+}
+)
+;
+async
+function
+getAccount
+(
+)
+{
+try
+{
+accounts
+=
+await
+okxwallet
+.
+request
+(
+{
+method
+:
+'eth_requestAccounts'
+}
+)
+;
+}
+catch
+(
+error
+)
+{
+console
+.
+log
+(
+error
+)
+;
+}
+}
+
+---
+
+<details>
+<summary>原始HTML内容</summary>
+
+```html
+<div class="routes_md__xWlGF"><!--$--><h1 id="签名交易">签名交易<a class="index_header-anchor__Xqb+L" href="#签名交易" style="opacity:0">#</a></h1>
+<p><code>eth_sendTransaction</code></p>
+<p><strong>描述</strong>
+交易是区块链上的一个正式动作，在欧易 Web3 钱包中必须通过调用 <code>eth_sendTransaction</code> 方法来发起交易。交易可以涉及到简单的以太坊的发送，并可能会发送代币，创建一个新的智能合约，或以任何方式改变区块链上的状态。这些交易一定是由一个来自外部账户的签名，或一个简单的密钥对进行发起的。</p>
+<p>在欧易 Web3 钱包中，通过使用 <code>okxwallet.request</code> 方法来发送一个交易将会组成一个类似以下案例的对象：</p>
+<p><strong>参数</strong>
+本部分主要介绍关于该文档所涉及的交易参数。该文档中大多数所涉及的交易参数都将由欧易 Web3 钱包处理，具体参数详情如下：</p>
+<div class="remark-highlight"><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> transactionParameters <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">nonce</span><span class="token operator">:</span> <span class="token string">'0x00'</span><span class="token punctuation">,</span> <span class="token comment">// ignored by OKX</span>
+  <span class="token literal-property property">gasPrice</span><span class="token operator">:</span> <span class="token string">'0x09184e72a000'</span><span class="token punctuation">,</span> <span class="token comment">// customizable by user during OKX confirmation.</span>
+  <span class="token literal-property property">gas</span><span class="token operator">:</span> <span class="token string">'0x2710'</span><span class="token punctuation">,</span> <span class="token comment">// customizable by user during OKX confirmation.</span>
+  <span class="token literal-property property">to</span><span class="token operator">:</span> <span class="token string">'0x0000000000000000000000000000000000000000'</span><span class="token punctuation">,</span> <span class="token comment">// Required except during contract publications.</span>
+  <span class="token keyword module">from</span><span class="token operator">:</span> okxwallet<span class="token punctuation">.</span><span class="token property-access">selectedAddress</span><span class="token punctuation">,</span> <span class="token comment">// must match user's active address.</span>
+  <span class="token literal-property property">value</span><span class="token operator">:</span> <span class="token string">'0x00'</span><span class="token punctuation">,</span> <span class="token comment">// Only required to send ether to the recipient from the initiating external account.</span>
+  <span class="token literal-property property">data</span><span class="token operator">:</span>
+    <span class="token string">'0x7f7465737432000000000000000000000000000000000000000000000000000000600057'</span><span class="token punctuation">,</span> <span class="token comment">// Optional, but used for defining smart contract creation and interaction.</span>
+  <span class="token literal-property property">chainId</span><span class="token operator">:</span> <span class="token string">'0x3'</span><span class="token punctuation">,</span> <span class="token comment">// Used to prevent transaction reuse across blockchains. Auto-filled by OKX.</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre></div>
+<p><strong>Gas 价格 [可选]</strong>
+可选参数 – 建议在私链上使用。</p>
+<p>在以太坊中，每笔交易所消耗的 Gas 都会有一个指定的价格。区块生产者在创建下一个区块时，为了达到利润最大化，会优先处理 Gas 价格较高的交易。这意味着，一个较高的 Gas 价格通常会让你的交易被更快地处理，但代价则是更高的交易费用。请注意，此参数可能不适用于 L2 网络，因为 L2 网络可能有一个恒定的 Gas 价格，甚至不存在 Gas 价格。</p>
+<p>换句话说，虽然你可以在欧易 Web3 钱包的默认网络上忽略这个参数，但是你的应用程序可能会比我们更了解目标网络的参数设定。在我们的默认网络中，欧易 Web3 钱包允许用户在打包交易的时候进行"慢"、"中"和"快"的选择，相对应越来越高的 Gas 溢价。</p>
+<p><strong>Gas 限制 [可选]</strong>
+可选参数，并且为 DApp 开发者较少用到的参数。
+Gas 限制是一个可选参数，我们会自动计算出一个合理的 Gas 价格。你应该能了解到所部署的智能合约是否曾因某些原因而受益于该自定义参数。</p>
+<p><strong>To [可选]</strong>
+一个十六进制编码的 Ethereum 地址。与收件人进行交易时所需提供的参数（除合约创建外的所有交易）。
+当没有 To 值，但有 data 值时，新合约就会被创建。</p>
+<p><strong>Value [可选]</strong>
+要发送的网络本地货币的十六进制编码值。在主 Ethereum 网络中，即 <a class="items-center" href="https://www.ethereum.org/eth" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">Ether<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a>。此值以 wei 计价，即 <code>1e-18</code>ether。</p>
+<p>请注意，这些在以太坊中经常使用的数字比本地 JavaScript 数字的精度要高得多。如果没有提前判定，可能会导致未知的情况。出于这个原因，我们强烈建议你在操作用于区块链的数值时使用 <a class="items-center" href="https://github.com/indutny/bn.js/" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">BN.js<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a>。</p>
+<p><strong>Data [可选]</strong>
+创建智能合约时需要此参数。</p>
+<p>这个数值也用于指定合约方法和它们的参数。你可在 <a class="items-center" href="https://solidity.readthedocs.io/en/develop/abi-spec.html" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">the solidity ABI spec<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a>上了解更多关于该数据的编码方式。</p>
+<p><strong>链 ID [目前已忽略]</strong>
+链 ID 目前由用户当前选择的网络的 <code>okxwallet.networkVersion</code> 中得出。</p>
+<p><strong>返回值</strong>
+DATA，32 字节 - 交易哈希，如果交易尚不可用，则为零哈希。</p>
+<p>当你创建合约时，交易被挖掘后，使用 <a class="items-center" href="https://ethereum.org/zh/developers/docs/apis/json-rpc/#eth_gettransactionreceipt" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">eth_getTransactionReceipt<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a> 获取合约地址。</p>
+<p><strong>例子</strong></p>
+<p>在 <a class="items-center" href="https://codepen.io/okxwallet/pen/VwGeGQb" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">codeopen<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a>中打开。</p>
+<div class="interact-wrapper"><button class="okui-btn btn-md btn-fill-highlight" type="button"><span class="btn-content">Connect Ethereum</span></button><button class="okui-btn btn-md btn-outline-primary" style="margin-left:14px" type="button"><span class="btn-content">Send Transaction</span></button><div></div></div>
+<div class="okui-tabs" style="height:auto;margin-top:14px"><div class="okui-tabs-pane-list okui-tabs-pane-list-md okui-tabs-pane-list-blue okui-tabs-pane-list-underline"><div class="okui-tabs-pane-list-wrapper underline-special-style"><div class="okui-tabs-pane-list-container" role="tablist"><div class="okui-tabs-pane-list-flex-shrink"><div aria-selected="true" class="okui-tabs-pane okui-tabs-pane-spacing okui-tabs-pane-md okui-tabs-pane-blue okui-tabs-pane-underline okui-tabs-pane-underline-active" data-pane-id="HTML" id=":R1bbf:-HTML" role="tab" style="--okd-inner-tabs-spacing:8px" tabindex="0">HTML</div><div aria-selected="false" class="okui-tabs-pane okui-tabs-pane-spacing okui-tabs-pane-md okui-tabs-pane-blue okui-tabs-pane-underline" data-pane-id="JavaScript" id=":R1bbf:-JavaScript" role="tab" style="--okd-inner-tabs-spacing:8px" tabindex="-1">JavaScript</div></div></div></div></div><div class="okui-tabs-panel-list"><div aria-hidden="false" aria-labelledby=":R1bbf:-HTML" class="okui-tabs-panel okui-tabs-panel-show" role="tabpanel" tabindex="0"><div class="remark-highlight"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>connectEthereumButton btn<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Connect Ethereum<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>signTransactionButton btn<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Send Transaction<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div></div><div aria-hidden="true" aria-labelledby=":R1bbf:-JavaScript" class="okui-tabs-panel" role="tabpanel" tabindex="-1"><div class="remark-highlight"><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> connectEthereumButton <span class="token operator">=</span> <span class="token dom variable">document</span><span class="token punctuation">.</span><span class="token method function property-access">querySelector</span><span class="token punctuation">(</span><span class="token string">'.connectEthereumButton'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> signTransactionButton <span class="token operator">=</span> <span class="token dom variable">document</span><span class="token punctuation">.</span><span class="token method function property-access">querySelector</span><span class="token punctuation">(</span><span class="token string">'.signTransactionButton'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> accounts <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+signTransactionButton<span class="token punctuation">.</span><span class="token method function property-access">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  okxwallet
+    <span class="token punctuation">.</span><span class="token method function property-access">request</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">method</span><span class="token operator">:</span> <span class="token string">'eth_sendTransaction'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">params</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token keyword module">from</span><span class="token operator">:</span> accounts<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">to</span><span class="token operator">:</span> <span class="token string">'0x2f318C334780961FB129D2a6c30D0763d9a5C970'</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">value</span><span class="token operator">:</span> <span class="token string">'0x29a2241af62c0000'</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">gasPrice</span><span class="token operator">:</span> <span class="token string">'0x09184e72a000'</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">gas</span><span class="token operator">:</span> <span class="token string">'0x2710'</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token method function property-access">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">txHash</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span>txHash<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token keyword control-flow">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token property-access">error</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+connectEthereumButton<span class="token punctuation">.</span><span class="token method function property-access">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token function">getAccount</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getAccount</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow">try</span><span class="token punctuation">{</span>
+    accounts <span class="token operator">=</span> <span class="token keyword control-flow">await</span> okxwallet<span class="token punctuation">.</span><span class="token method function property-access">request</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">method</span><span class="token operator">:</span> <span class="token string">'eth_requestAccounts'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token keyword control-flow">catch</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div></div></div></div><!--/$--></div>
+```
+
+</details>
+
+<details>
+<summary>导航信息</summary>
+
+```json
+{
+  "breadcrumbs": [
+    "DApp 连接钱包",
+    "EVM",
+    "签名交易"
+  ],
+  "sidebar_links": [
+    "什么是连接钱包",
+    "支持的网络",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Solana 兼容链",
+    "TON",
+    "SUI",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "Tron",
+    "Starknet",
+    "常见问题",
+    "接入前提",
+    "EVM 兼容链",
+    "获取钱包地址",
+    "获取 chainId",
+    "添加代币",
+    "签名交易",
+    "智能合约交互"
+  ],
+  "toc": [
+    "什么是连接钱包",
+    "支持的网络",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Solana 兼容链",
+    "TON",
+    "SUI",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "Tron",
+    "Starknet",
+    "常见问题",
+    "接入前提",
+    "EVM 兼容链",
+    "获取钱包地址",
+    "获取 chainId",
+    "添加代币",
+    "签名交易",
+    "智能合约交互",
+    "切换网络",
+    "Provider API",
+    "Bitcoin 兼容链",
+    "Tron",
+    "Solana 兼容链",
+    "TON",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "SUI",
+    "Stacks",
+    "Starknet",
+    "Cardano",
+    "Nostr",
+    "NEAR",
+    "WAX",
+    "设置图标"
+  ]
+}
+```
+
+</details>

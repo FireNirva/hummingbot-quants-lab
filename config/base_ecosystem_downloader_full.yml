@@ -1,0 +1,39 @@
+tasks:
+  gateio_base_ecosystem_downloader:
+    enabled: true
+    task_class: tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    frequency_hours: 99999
+    config:
+      connector_name: gate_io
+      trading_pairs:
+      - VIRTUAL-USDT
+      # - BRETT-USDT
+      # - AERO-USDT
+      # - AIXBT-USDT
+      # - FAI-USDT
+      # - COOKIE-USDT
+      # - MIGGLES-USDT
+      # - ZORA-USDT
+      # - EDGE-USDT
+      # - BENJI-USDT
+      # - GPS-USDT
+      # - XSWAP-USDT
+      # - LVLY-USDT
+      # - HINT-USDT
+      # - SKOP-USDT
+      # - TALENT-USDT
+      # - GMRT-USDT
+      # - TRC-USDT
+      # - ZAP-USDT
+      # - FORM1-USDT
+      # - AWS-USDT
+      # - BASEX-USDT
+      intervals:
+      - 15m
+      days_data_retention: 14
+      timescale_config:
+        db_host: timescaledb
+        db_port: 5432
+        db_user: admin
+        db_password: admin
+        db_name: timescaledb

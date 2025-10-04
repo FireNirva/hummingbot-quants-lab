@@ -1,0 +1,35 @@
+tasks:
+  gateio_bsc_ecosystem_downloader:
+    enabled: true
+    task_class: tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    frequency_hours: 999999
+    config:
+      connector_name: gate_io
+      trading_pairs:
+      - CHEEMS-USDT
+      - BABYDOGE-USDT
+      - ALE-USDT
+      - TSTBSC-USDT
+      - BANANAS3I-USDT
+      - CAT-USDT
+      - BMT-USDT
+      - MUBARAK-USDT
+      - BROCCOLI-USDT
+      - TUT-USDT
+      - FHE-USDT
+      - GM-USDT
+      - KOMA-USDT
+      - AICELL-USDT
+      - FOUR-USDT
+      intervals:
+      - 15m
+      - 4h
+      - 1d
+      - 1h
+      days_data_retention: 30
+      timescale_config:
+        db_host: timescaledb
+        db_port: 5432
+        db_user: admin
+        db_password: admin
+        db_name: timescaledb

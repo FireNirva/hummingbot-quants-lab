@@ -1,4 +1,19 @@
 services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: timescaledb
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=timescaledb
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - quants_shared_net
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -11,6 +26,8 @@ services:
     volumes:
       - mongodb_data_ql:/data/db
     restart: unless-stopped
+    networks:
+      - quants_shared_net
 
   mongo-express:
     image: mongo-express:latest
@@ -27,6 +44,14 @@ services:
     depends_on:
       - mongodb
     restart: unless-stopped
+    networks:
+      - quants_shared_net
+
+networks:
+  quants_shared_net:
+    driver: bridge
+    name: quants_lab_shared_network
 
 volumes:
   mongodb_data_ql:
+  timescale_data:

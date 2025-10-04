@@ -1,0 +1,157 @@
+# 接入前提 | 连接App或Mini钱包 | 接入 Web3 钱包 | DEX API 文档 | 欧易
+
+**URL:** https://web3.okx.com/zh-hans/build/dev-docs/sdks/app-connect-preparation#接入前提  
+**抓取时间:** 2025-05-27 03:01:15  
+**字数:** 51
+
+## 导航路径
+DApp 连接钱包 > 接入前提
+
+## 目录
+- 什么是连接钱包
+- 支持的网络
+- 接入前提
+- EVM 兼容链
+- Bitcoin 兼容链
+- Solana 兼容链
+- TON
+- SUI
+- Aptos/Movement
+- Cosmos 系/Sei
+- Tron
+- Starknet
+- 常见问题
+- 接入前提
+- EVM 兼容链
+- Bitcoin 兼容链
+- Tron
+- Solana 兼容链
+- TON
+- Aptos/Movement
+- Cosmos 系/Sei
+- SUI
+- Stacks
+- Starknet
+- Cardano
+- Nostr
+- NEAR
+- WAX
+- 设置图标
+
+---
+
+接入前提
+#
+通过 OKX Connect 协议连接欧易移动端 App 钱包或Mini 钱包（*Telegram 内置小程序）的方法，适用于 DApp 运营在 Telegram 或移动端浏览器。
+如果选择通过SDK接入，在 DApp 中添加“连接欧易钱包”按钮，点击按钮可唤起移动端App钱包，并和欧易钱包进行交互，如获取地址、唤起钱包签名等操作。
+在 SDK 的基础上，我们也提供了 UI 界面。如果选择通过UI接入，若DApp运营在 Telegram内，则用户可以选择停留在Telegram并唤起欧易 Mini 钱包或者唤起移动端App钱包。
+如果还未 钱包，请前往下载页:
+
+如果还没有欧易 Telegram Mini 钱包，请前往 Telegram：
+探索Mini 钱包（@OKX_WALLET_BOT）
+如果已 钱包，请在左侧目录找到你的 DApp 部署的网络，按对应方法开始接入，不同网络的连接有差异。
+EVM 兼容链
+Bitcoin 兼容链
+Solana
+TON
+SUI
+Aptos
+Cosmos 系/Sei
+Tron
+Starknet
+常见问题
+
+---
+
+<details>
+<summary>原始HTML内容</summary>
+
+```html
+<div class="routes_md__xWlGF"><!--$--><h1 id="接入前提">接入前提<a class="index_header-anchor__Xqb+L" href="#接入前提" style="opacity:0">#</a></h1>
+<p>通过 OKX Connect 协议连接欧易移动端 App 钱包或Mini 钱包（*Telegram 内置小程序）的方法，适用于 DApp 运营在 Telegram 或移动端浏览器。</p>
+<ul><li>如果选择通过SDK接入，在 DApp 中添加“连接欧易钱包”按钮，点击按钮可唤起移动端App钱包，并和欧易钱包进行交互，如获取地址、唤起钱包签名等操作。</li><li>在 SDK 的基础上，我们也提供了 UI 界面。如果选择通过UI接入，若DApp运营在 Telegram内，则用户可以选择停留在Telegram并唤起欧易 Mini 钱包或者唤起移动端App钱包。</li></ul>
+<p>如果还未下载欧易 App 钱包，请前往下载页:</p>
+<p><a href="/zh-hans/download">下载欧易App</a></p>
+<p>如果还没有欧易 Telegram Mini 钱包，请前往 Telegram：</p>
+<p><a class="items-center" href="https://t.me/OKX_WALLET_BOT" rel="nofollow noreferrer" style="display:inline-flex;line-height:16px" target="_blank">探索Mini 钱包（@OKX_WALLET_BOT）<i aria-hidden="true" class="icon iconfont doc-ssr-okds-open-link" role="img" style="font-size:24px;color:#0569FF;margin-left:2px"></i></a></p>
+<p>如果已下载 App 钱包，请在左侧目录找到你的 DApp 部署的网络，按对应方法开始接入，不同网络的连接有差异。</p>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-evm"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">EVM 兼容链</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-bitcoin"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Bitcoin 兼容链</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-solana"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Solana</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-ton"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">TON</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-sui"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">SUI</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-aptos"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Aptos</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-cosmos"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Cosmos 系/Sei</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-trons"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Tron</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-starknet"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">Starknet</div></div></a>
+<a class="flex justify-start items-center index_card__Pvw5e" href="/zh-hans/build/dev-docs/sdks/app-connect-faq"><i aria-hidden="true" class="icon iconfont okx-defi-okc-tf-contract index_icon__jz5er" role="img"></i><div class="index_head__iMYf1"><div class="truncate index_title__Tcv0Y">常见问题</div></div></a><!--/$--></div>
+```
+
+</details>
+
+<details>
+<summary>导航信息</summary>
+
+```json
+{
+  "breadcrumbs": [
+    "DApp 连接钱包",
+    "接入前提"
+  ],
+  "sidebar_links": [
+    "什么是连接钱包",
+    "支持的网络",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Solana 兼容链",
+    "TON",
+    "SUI",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "Tron",
+    "Starknet",
+    "常见问题",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Tron",
+    "Solana 兼容链",
+    "TON",
+    "Aptos/Movement"
+  ],
+  "toc": [
+    "什么是连接钱包",
+    "支持的网络",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Solana 兼容链",
+    "TON",
+    "SUI",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "Tron",
+    "Starknet",
+    "常见问题",
+    "接入前提",
+    "EVM 兼容链",
+    "Bitcoin 兼容链",
+    "Tron",
+    "Solana 兼容链",
+    "TON",
+    "Aptos/Movement",
+    "Cosmos 系/Sei",
+    "SUI",
+    "Stacks",
+    "Starknet",
+    "Cardano",
+    "Nostr",
+    "NEAR",
+    "WAX",
+    "设置图标"
+  ]
+}
+```
+
+</details>

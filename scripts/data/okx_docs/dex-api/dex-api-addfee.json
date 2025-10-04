@@ -1,0 +1,55 @@
+{
+  "title": "设置分佣 | 兑换 API | 交易 API | DEX API | DEX API 文档 | 欧易",
+  "text": "设置分佣\n#\nOKX DEX API 支持为代币兑换，配置分佣费用和费用接收地址。\n您可以将分佣相关参数包含在兑换报价中，来设置并收取分佣，对多数支持的链，每笔兑换最多收取 3% 的分佣费用，而针对 Solana 链每笔兑换最多收取 10% 的分佣费用。\nOKX DEX API 计划从您向用户收取的分佣费中抽取一定比例。更多详细，请访问\nAPI 费用\n页面。\n// 使用 quoteParams 来设置分佣\nconst quoteParams =\n{\nchainId\n:\nSOLANA_CHAIN_ID\n,\namount\n:\nrawAmount\n,\nfromTokenAddress\n,\ntoTokenAddress\n,\nslippage\n:\n\"0.5\"\n,\nuserWalletAddress\n:\nuserAddress\n,\n// 分佣相关的参数\nfromTokenReferrerWalletAddress\n:\n\"Your_REFERRER_WALLET_ADDRESS\"\n,\n// 可选:基于询价币种接收分佣的地址\ntoTokenReferrerWalletAddress\n:\n\"REFERRER_WALLET\"\n,\n// 可选：基于目标币种接收分佣的地址\nfeePercent\n:\n\"1.5\"\n,\n// 可选：分佣比例 (0-3%, 最多 2 位小数)\n}\nas Record<string\n,\nstring>;\n分佣参数配置说明：\n参数\nfeePercent\n分佣比例，须介于 0 和 3% 之间。\n参数\nfeePercent\n最多支持2个小数点，例如传入 1.326%，但最终计算使用 1.32% 作为分佣比例。\n对于 Solana，收取分佣的地址必须提前存入一些 SOL 以进行激活。\n每笔交易只能从 fromToken 或 toToken 中选择一个作为分佣的来源。\n分佣配置详细示例：\n// 获取兑换报价\nconst quoteParams =\n{\nchainId\n:\nSOLANA_CHAIN_ID\n,\namount\n:\nrawAmount\n,\nfromTokenAddress\n,\ntoTokenAddress\n,\nslippage\n:\n\"0.5\"\n,\nuserWalletAddress\n:\nuserAddress\n,\n// Additional Fee params\nfromTokenReferrerWalletAddress\n:\n\"fee-recipient-wallet-address\"\n,\nfeePercent\n:\n\"1\"\n,\n// The wallet addresses to receive the commission fee (Each transaction can only choose commission from either the fromToken or the toToken)\n// toTokenReferrerWalletAddress: \"fee-recipient-wallet-address\",\n// fromTokenReferrerWalletAddress: \"fee-recipient-wallet-address\",\n}\nas Record<string\n,\nstring>;\nconst timestamp = new Date().toISOString();\n const requestPath =\n\"/api/v5/dex/aggregator/swap\"\n;\n const queryString =\n\"?\"\n+ new URLSearchParams(quoteParams).toString();\n const headers = getHeaders(timestamp\n,\n\"GET\"\n,\nrequestPath\n,\nqueryString);\n\n const response = await fetch(\n `https\n:\n//web3.okx.com${requestPath}${queryString}`,\n{\nmethod\n:\n\"GET\"\n,\nheaders\n}\n);\n\n const data = await response.json();\n// .. Continue code implementation\n分佣配置的命令行：\n# Example\n:\nSwap .\n01\nSOL to USDC with\n1.5\n% fee to referrer\nnpx ts-node swap.ts .\n01\n11111111111111111111111111111111\nEPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v --referrer YOUR_REFERRER_ADDRESS --fee\n1.5\n计算示例的分佣费用说明：\n以 1.5% 的分佣比例，向 100 USDC 的交易收取分佣，设置\ntoTokenReferrerWalletAddress\n作为分佣接收地址参数：\n分佣金额：1.5 USDC（100 USDC 的1.5%）\n实际用户兑换成功金额：98.5 USDC\n分佣（1.5 USDC）将发送到分佣接收地址",
+  "html": "<div class=\"routes_md__xWlGF\"><!--$--><h1 id=\"设置分佣\">设置分佣<a class=\"index_header-anchor__Xqb+L\" href=\"#设置分佣\" style=\"opacity:0\">#</a></h1>\n<p>OKX DEX API 支持为代币兑换，配置分佣费用和费用接收地址。</p>\n<p>您可以将分佣相关参数包含在兑换报价中，来设置并收取分佣，对多数支持的链，每笔兑换最多收取 3% 的分佣费用，而针对 Solana 链每笔兑换最多收取 10% 的分佣费用。</p>\n<p>OKX DEX API 计划从您向用户收取的分佣费中抽取一定比例。更多详细，请访问 <a href=\"/zh-hans/build/dev-docs/dex-api/dex-api-fee\">API 费用</a> 页面。</p>\n<div class=\"remark-highlight\"><pre class=\"language-json\"><code class=\"language-json\"><span class=\"token comment\">// 使用 quoteParams 来设置分佣</span>\nconst quoteParams = <span class=\"token punctuation\">{</span>\n    chainId<span class=\"token operator\">:</span> SOLANA_CHAIN_ID<span class=\"token punctuation\">,</span>\n    amount<span class=\"token operator\">:</span> rawAmount<span class=\"token punctuation\">,</span>\n    fromTokenAddress<span class=\"token punctuation\">,</span>\n    toTokenAddress<span class=\"token punctuation\">,</span>\n    slippage<span class=\"token operator\">:</span> <span class=\"token string\">\"0.5\"</span><span class=\"token punctuation\">,</span>\n    userWalletAddress<span class=\"token operator\">:</span> userAddress<span class=\"token punctuation\">,</span>\n    <span class=\"token comment\">// 分佣相关的参数</span>\n    fromTokenReferrerWalletAddress<span class=\"token operator\">:</span> <span class=\"token string\">\"Your_REFERRER_WALLET_ADDRESS\"</span><span class=\"token punctuation\">,</span> <span class=\"token comment\">// 可选:基于询价币种接收分佣的地址</span>\n    toTokenReferrerWalletAddress<span class=\"token operator\">:</span> <span class=\"token string\">\"REFERRER_WALLET\"</span><span class=\"token punctuation\">,</span> <span class=\"token comment\">// 可选：基于目标币种接收分佣的地址</span>\n    feePercent<span class=\"token operator\">:</span> <span class=\"token string\">\"1.5\"</span><span class=\"token punctuation\">,</span>  <span class=\"token comment\">// 可选：分佣比例 (0-3%, 最多 2 位小数)</span>\n\n<span class=\"token punctuation\">}</span> as Record&lt;string<span class=\"token punctuation\">,</span> string&gt;;\n</code></pre></div>\n<p>分佣参数配置说明：</p>\n<ul>\n<li>参数<code>feePercent</code>分佣比例，须介于 0 和 3% 之间。</li>\n<li>参数<code>feePercent</code>最多支持2个小数点，例如传入 1.326%，但最终计算使用 1.32% 作为分佣比例。</li>\n<li>对于 Solana，收取分佣的地址必须提前存入一些 SOL 以进行激活。</li>\n<li>每笔交易只能从 fromToken 或 toToken 中选择一个作为分佣的来源。</li>\n</ul>\n<p>分佣配置详细示例：</p>\n<div class=\"remark-highlight\"><pre class=\"language-json\"><code class=\"language-json\"><span class=\"token comment\">// 获取兑换报价</span>\n   const quoteParams = <span class=\"token punctuation\">{</span>\n       chainId<span class=\"token operator\">:</span> SOLANA_CHAIN_ID<span class=\"token punctuation\">,</span>\n       amount<span class=\"token operator\">:</span> rawAmount<span class=\"token punctuation\">,</span>\n       fromTokenAddress<span class=\"token punctuation\">,</span>\n       toTokenAddress<span class=\"token punctuation\">,</span>\n       slippage<span class=\"token operator\">:</span> <span class=\"token string\">\"0.5\"</span><span class=\"token punctuation\">,</span>\n       userWalletAddress<span class=\"token operator\">:</span> userAddress<span class=\"token punctuation\">,</span>\n\n       <span class=\"token comment\">// Additional Fee params</span>\n       fromTokenReferrerWalletAddress<span class=\"token operator\">:</span> <span class=\"token string\">\"fee-recipient-wallet-address\"</span><span class=\"token punctuation\">,</span>\n       feePercent<span class=\"token operator\">:</span> <span class=\"token string\">\"1\"</span><span class=\"token punctuation\">,</span>\n\n       <span class=\"token comment\">// The wallet addresses to receive the commission fee (Each transaction can only choose commission from either the fromToken or the toToken)</span>\n       <span class=\"token comment\">// toTokenReferrerWalletAddress: \"fee-recipient-wallet-address\",</span>\n       <span class=\"token comment\">// fromTokenReferrerWalletAddress: \"fee-recipient-wallet-address\",</span>\n\n   <span class=\"token punctuation\">}</span> as Record&lt;string<span class=\"token punctuation\">,</span> string&gt;;\n</code></pre></div>\n<div class=\"remark-highlight\"><pre class=\"language-json\"><code class=\"language-json\">const timestamp = new Date().toISOString();\n    const requestPath = <span class=\"token string\">\"/api/v5/dex/aggregator/swap\"</span>;\n    const queryString = <span class=\"token string\">\"?\"</span> + new URLSearchParams(quoteParams).toString();\n    const headers = getHeaders(timestamp<span class=\"token punctuation\">,</span> <span class=\"token string\">\"GET\"</span><span class=\"token punctuation\">,</span> requestPath<span class=\"token punctuation\">,</span> queryString);\n\n    const response = await fetch(\n        `https<span class=\"token operator\">:</span><span class=\"token comment\">//web3.okx.com${requestPath}${queryString}`,</span>\n        <span class=\"token punctuation\">{</span> method<span class=\"token operator\">:</span> <span class=\"token string\">\"GET\"</span><span class=\"token punctuation\">,</span> headers <span class=\"token punctuation\">}</span>\n    );\n\n    const data = await response.json();\n\n    <span class=\"token comment\">// .. Continue code implementation</span>\n</code></pre></div>\n<p>分佣配置的命令行：</p>\n<div class=\"remark-highlight\"><pre class=\"language-json\"><code class=\"language-json\"># Example<span class=\"token operator\">:</span> Swap .<span class=\"token number\">01</span> SOL to USDC with <span class=\"token number\">1.5</span>% fee to referrer\nnpx ts-node swap.ts .<span class=\"token number\">01</span> <span class=\"token number\">11111111111111111111111111111111</span> EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v --referrer YOUR_REFERRER_ADDRESS --fee <span class=\"token number\">1.5</span>\n</code></pre></div>\n<p>计算示例的分佣费用说明：</p>\n<p>以 1.5% 的分佣比例，向 100 USDC 的交易收取分佣，设置<code>toTokenReferrerWalletAddress</code>作为分佣接收地址参数：</p>\n<ul>\n<li>分佣金额：1.5 USDC（100 USDC 的1.5%）</li>\n<li>实际用户兑换成功金额：98.5 USDC</li>\n<li>分佣（1.5 USDC）将发送到分佣接收地址</li>\n</ul><!--/$--></div>",
+  "url": "https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-api-addfee#设置分佣",
+  "navigation": {
+    "breadcrumbs": [
+      "DEX API",
+      "交易 API",
+      "设置分佣"
+    ],
+    "sidebar_links": [
+      "搭建兑换应用",
+      "搭建跨链应用",
+      "介绍",
+      "API 参考",
+      "设置分佣",
+      "DEX 集成",
+      "智能合约",
+      "错误码",
+      "FAQ",
+      "介绍",
+      "API 参考",
+      "支持的跨链桥",
+      "智能合约",
+      "错误码",
+      "FAQ",
+      "介绍",
+      "API 参考",
+      "错误码"
+    ],
+    "toc": [
+      "搭建兑换应用",
+      "搭建跨链应用",
+      "介绍",
+      "API 参考",
+      "设置分佣",
+      "DEX 集成",
+      "智能合约",
+      "错误码",
+      "FAQ",
+      "介绍",
+      "API 参考",
+      "支持的跨链桥",
+      "智能合约",
+      "错误码",
+      "FAQ",
+      "介绍",
+      "API 参考",
+      "错误码"
+    ]
+  },
+  "word_count": 269,
+  "extract_time": "2025-05-27 00:26:45"
+}

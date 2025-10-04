@@ -1,0 +1,25 @@
+# base 生态系统交易对配置
+
+base_ecosystem:
+  - VIRTUAL-USDT
+  - BRETT-USDT
+  - AERO-USDT
+  - AIXBT-USDT
+  - FAI-USDT
+  - COOKIE-USDT
+  - MIGGLES-USDT
+  - ZORA-USDT
+  - EDGE-USDT
+  - BENJI-USDT
+  - GPS-USDT
+  - XSWAP-USDT
+  - LVLY-USDT
+  - HINT-USDT
+  - SKOP-USDT
+  - TALENT-USDT
+  - GMRT-USDT
+  - TRC-USDT
+  - ZAP-USDT
+  - FORM1-USDT
+  - AWS-USDT
+  - BASEX-USDT

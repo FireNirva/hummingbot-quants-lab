@@ -1,0 +1,210 @@
+# 获取总估值 | API 参考 | 余额 API | 行情 API | DEX API | DEX API 文档 | 欧易
+
+**URL:** https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-balance-total-value#请求示例  
+**抓取时间:** 2025-05-27 06:42:14  
+**字数:** 128
+
+## 导航路径
+DEX API > 行情 API > API 参考 > 获取总估值
+
+## 目录
+- API 参考
+- 错误码
+- Websocket
+- API 参考
+- 错误码
+- API 参考
+- 获取支持的链
+- 获取总估值
+- 获取资产明细
+- 获取特定代币余额
+- 错误码
+- API 参考
+- 错误码
+
+---
+
+DEX API
+行情 API
+余额 API
+API 参考
+获取总估值
+获取总估值
+#
+获取地址下全量代币和 Defi 资产总余额。
+请求地址
+#
+GET
+https://web3.okx.com/api/v5/dex/balance/total-value-by-address
+请求参数
+#
+Parameter
+Type
+Required
+Description
+address
+String
+是
+查地址总估值
+chains
+String
+是
+筛选需要查询总资产估值的链，多条链以","分隔。最多支持 50 个。(如
+1
+代表Ethereum。更多可查看
+这里
+。)
+assetType
+String
+否
+查询余额类型，默认查所有资产总余额。
+0
+：查询所有资产总余额，包括代币和 defi 资产
+1
+：只查代币总余额
+2
+：只查 defi 总余额
+excludeRiskToken
+Boolean
+否
+是否过滤风险空投代币和貔貅盘代币。默认过滤。
+true
+:过滤，
+false
+:不过滤
+对于貔貅盘代币，目前只支持
+ETH
+、
+BSC
+、
+SOL
+、
+BASE
+四条链，更多的链即将被支持。
+响应参数
+#
+Parameter
+Type
+Description
+totalValue
+String
+根据查询类型返回资产总余额，以美元为单位返回
+获取支持的链
+获取资产明细
+请求示例
+#
+shell
+curl
+--location
+--request
+GET
+'https://web3.okx.com/api/v5/de x/asset/total-value-by-address?address=0x0b32aa5c1e71715206fe29b7badb21ad95f272c0&chains=1&assetType=0'
+\
+--header
+'OK-ACCESS-KEY: 37c541a1-****-****-****-10fe7a038418'
+\
+--header
+'OK-ACCESS-SIGN: leaV********3uw='
+\
+--header
+'OK-ACCESS-PASSPHRASE: 1****6'
+\
+--header
+'OK-ACCESS-TIMESTAMP: 2023-10-18T12:21:41.274Z'
+响应示例
+#
+200
+{
+"code"
+:
+"0"
+,
+"msg"
+:
+"success"
+,
+"data"
+:
+[
+{
+"totalValue"
+:
+"172.895057177065864522056725546579939398"
+}
+]
+}
+获取支持的链
+获取资产明细
+
+---
+
+<details>
+<summary>原始HTML内容</summary>
+
+```html
+<div class="doc-content routes_web3-content__PbRs0 routes_web3-content-with-sec-nav__6HMH4"><div class="index_wrapper__5T0Vu"><div aria-label="页面路径" class="okui-breadcrumbs okui-breadcrumbs-secondary okui-breadcrumbs-lg" role="navigation"><div class="okui-overflow_scroll"><div class="okui-overflow_scroll-nav"><div class="okui-overflow_scroll-nav-icon icon-left icon-hide"><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-sm icon-left-inner" role="img"></i></div><div class="okui-overflow_scroll-nav-icon icon-right icon-hide"><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-sm" role="img"></i></div></div><div class="okui-overflow_scroll-scroll"><div class="okui-overflow_scroll-scroll-children"><div class="okui-breadcrumbs-crumb"><div class="okui-hyperlink okui-hyperlink-secondary okui-hyperlink-no-hover-underline okui-hyperlink-lg okui-hyperlink-medium okui-breadcrumbs-crumb-link"><span class="okui-hyperlink-text"><a class="index_text__5k+e+" href="/zh-hans/build/dev-docs/dex-api/dex-what-is-dex-api" style="color:inherit">DEX API</a></span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md crumb-icon" role="img"></i></div><div class="okui-breadcrumbs-crumb"><div class="okui-hyperlink okui-hyperlink-secondary okui-hyperlink-no-hover-underline okui-hyperlink-lg okui-hyperlink-medium okui-breadcrumbs-crumb-link"><span class="okui-hyperlink-text"><a class="index_text__5k+e+" href="/zh-hans/build/dev-docs/dex-api/dex-market-api-introduction" style="color:inherit">行情 API</a></span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md crumb-icon" role="img"></i></div><div class="okui-breadcrumbs-crumb"><div class="okui-hyperlink okui-hyperlink-secondary okui-hyperlink-no-hover-underline okui-hyperlink-lg okui-hyperlink-medium okui-breadcrumbs-crumb-link"><span class="okui-hyperlink-text"><span class="cursor-auto index_text__5k+e+">余额 API</span></span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md crumb-icon" role="img"></i></div><div class="okui-breadcrumbs-crumb"><div class="okui-hyperlink okui-hyperlink-secondary okui-hyperlink-no-hover-underline okui-hyperlink-lg okui-hyperlink-medium okui-breadcrumbs-crumb-link"><span class="okui-hyperlink-text"><a class="index_text__5k+e+" href="/zh-hans/build/dev-docs/dex-api/dex-balance-reference" style="color:inherit">API 参考</a></span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md crumb-icon" role="img"></i></div><div aria-current="location" class="okui-breadcrumbs-crumb okui-breadcrumbs-crumb-active"><a class="index_text__5k+e+" href="/zh-hans/build/dev-docs/dex-api/dex-balance-total-value" style="color:inherit">获取总估值</a></div></div></div></div></div></div><!--$-->
+<div class="index_container__BsMBZ"><div class="index_params-wrapper__P58Fw"><h1 id="获取总估值">获取总估值<a class="index_header-anchor__Xqb+L" href="#获取总估值" style="opacity:0">#</a></h1><p>获取地址下全量代币和 Defi 资产总余额。</p><h2 data-content="请求地址" id="请求地址">请求地址<a class="index_header-anchor__Xqb+L" href="#请求地址" style="opacity:0">#</a></h2><p><span class="index_tag__Pwjko">GET</span> <code>https://web3.okx.com/api/v5/dex/balance/total-value-by-address</code></p><h2 data-content="请求参数" id="请求参数">请求参数<a class="index_header-anchor__Xqb+L" href="#请求参数" style="opacity:0">#</a></h2><div class="index_table__kvZz5"><table><thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody><tr><td>address</td><td>String</td><td>是</td><td>查地址总估值</td></tr><tr><td>chains</td><td>String</td><td>是</td><td>筛选需要查询总资产估值的链，多条链以","分隔。最多支持 50 个。(如<code>1</code>代表Ethereum。更多可查看<a href="/zh-hans/build/dev-docs/dex-api/dex-supported-chain">这里</a>。)</td></tr><tr><td>assetType</td><td>String</td><td>否</td><td>查询余额类型，默认查所有资产总余额。<br/><code>0</code>：查询所有资产总余额，包括代币和 defi 资产 <br/><code>1</code>：只查代币总余额 <br/><code>2</code>：只查 defi 总余额</td></tr><tr><td>excludeRiskToken</td><td>Boolean</td><td>否</td><td>是否过滤风险空投代币和貔貅盘代币。默认过滤。<br/><code>true</code>:过滤，<code>false</code>:不过滤 <br/>对于貔貅盘代币，目前只支持 <code>ETH</code>、<code>BSC</code>、<code>SOL</code>、<code>BASE</code> 四条链，更多的链即将被支持。</td></tr></tbody></table></div><h2 data-content="响应参数" id="响应参数">响应参数<a class="index_header-anchor__Xqb+L" href="#响应参数" style="opacity:0">#</a></h2><div class="index_table__kvZz5"><table><thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td>totalValue</td><td>String</td><td>根据查询类型返回资产总余额，以美元为单位返回</td></tr></tbody></table></div><div class="index_pc-footer__bI-X6"><div data-ssr-id=":R2df:"><div class="md:flex md:justify-between index_web3-pagination-footer__9BwqX"><a class="flex items-center justify-start grow index_last__rkE9+" href="/zh-hans/build/dev-docs/dex-api/dex-balance-chains" target="_self"><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-left-centered-md index_icon__B+vCh" role="img" style="margin-right:8px"></i><div><span class="truncate-2 index_f-16__mSYje">获取支持的链</span></div></a><a class="flex items-center justify-end grow index_next__Bv5Lh" href="/zh-hans/build/dev-docs/dex-api/dex-balance-total-token-balances" target="_self"><div><span class="truncate-2 index_f-16__mSYje" style="padding-right:8px">获取资产明细</span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md index_icon__B+vCh" role="img"></i></a></div></div></div></div><div class="index_code-example-wrapper__xJmbi"><h2 data-content="请求示例" id="请求示例">请求示例<a class="index_header-anchor__Xqb+L" href="#请求示例" style="opacity:0">#</a></h2><div class="index_code-example__GIWWb"><div class="index_header__fvB9O"><div class="index_option__w7tNW">shell</div><div class="okui-popup okui-tooltip okui-tooltip-neutral" data-testid="okd-popup"><i class="icon iconfont doc-ssr-okds-copy cursor-pointer okui-a11y-button" role="button" style="font-size:28px" tabindex="0"></i></div></div><div class="index_code-example-body__PrHtZ"><div class="remark-highlight"><pre class="language-shell"><code class="language-shell"><span class="token function">curl</span> <span class="token parameter variable">--location</span> <span class="token parameter variable">--request</span> GET <span class="token string">'https://web3.okx.com/api/v5/de x/asset/total-value-by-address?address=0x0b32aa5c1e71715206fe29b7badb21ad95f272c0&amp;chains=1&amp;assetType=0'</span> <span class="token punctuation">\</span>
+
+<span class="token parameter variable">--header</span> <span class="token string">'OK-ACCESS-KEY: 37c541a1-****-****-****-10fe7a038418'</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--header</span> <span class="token string">'OK-ACCESS-SIGN: leaV********3uw='</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--header</span> <span class="token string">'OK-ACCESS-PASSPHRASE: 1****6'</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--header</span> <span class="token string">'OK-ACCESS-TIMESTAMP: 2023-10-18T12:21:41.274Z'</span>
+</code></pre></div></div></div><h2 data-content="响应示例" id="响应示例">响应示例<a class="index_header-anchor__Xqb+L" href="#响应示例" style="opacity:0">#</a></h2><div class="index_code-example__GIWWb"><div class="index_header__fvB9O"><div class="index_option__w7tNW"><div class="flex items-center"><div class="index_circle__Y78Kg" style="background-color:#31BD65"></div>200</div></div><div class="okui-popup okui-tooltip okui-tooltip-neutral" data-testid="okd-popup"><i class="icon iconfont doc-ssr-okds-copy cursor-pointer okui-a11y-button" role="button" style="font-size:28px" tabindex="0"></i></div></div><div class="index_code-example-body__PrHtZ"><div class="remark-highlight"><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"0"</span><span class="token punctuation">,</span>
+    <span class="token property">"msg"</span><span class="token operator">:</span> <span class="token string">"success"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+            <span class="token property">"totalValue"</span><span class="token operator">:</span> <span class="token string">"172.895057177065864522056725546579939398"</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre></div></div></div><div class="index_sm-footer__Mk-6b"><div data-ssr-id=":R2lf:"><div class="md:flex md:justify-between index_web3-pagination-footer__9BwqX"><a class="flex items-center justify-start grow index_last__rkE9+" href="/zh-hans/build/dev-docs/dex-api/dex-balance-chains" target="_self"><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-left-centered-md index_icon__B+vCh" role="img" style="margin-right:8px"></i><div><span class="truncate-2 index_f-16__mSYje">获取支持的链</span></div></a><a class="flex items-center justify-end grow index_next__Bv5Lh" href="/zh-hans/build/dev-docs/dex-api/dex-balance-total-token-balances" target="_self"><div><span class="truncate-2 index_f-16__mSYje" style="padding-right:8px">获取资产明细</span></div><i aria-hidden="true" class="icon iconfont doc-ssr-okds-arrow-chevron-right-centered-md index_icon__B+vCh" role="img"></i></a></div></div></div></div></div><!--/$--></div>
+```
+
+</details>
+
+<details>
+<summary>导航信息</summary>
+
+```json
+{
+  "breadcrumbs": [
+    "DEX API",
+    "行情 API",
+    "API 参考",
+    "获取总估值"
+  ],
+  "sidebar_links": [
+    "API 参考",
+    "错误码",
+    "Websocket",
+    "API 参考",
+    "错误码",
+    "API 参考",
+    "获取支持的链",
+    "获取总估值",
+    "获取资产明细",
+    "获取特定代币余额",
+    "错误码",
+    "API 参考",
+    "错误码"
+  ],
+  "toc": [
+    "API 参考",
+    "错误码",
+    "Websocket",
+    "API 参考",
+    "错误码",
+    "API 参考",
+    "获取支持的链",
+    "获取总估值",
+    "获取资产明细",
+    "获取特定代币余额",
+    "错误码",
+    "API 参考",
+    "错误码"
+  ]
+}
+```
+
+</details>

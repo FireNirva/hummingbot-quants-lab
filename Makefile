@@ -136,7 +136,7 @@ run-notebook-local:
 
 # Stop task runner (Docker)
 stop-task:
-	docker stop $(shell docker ps -q --filter ancestor=hummingbot/quants-lab) || true
+	docker compose -f docker-compose-task-runner.yml down
 
 # Launch Optuna Dashboard
 launch-optuna:
@@ -153,6 +153,27 @@ cleanup-tasks:
 # List current task states
 list-task-states:
 	python scripts/cleanup_tasks.py --list
+
+# OKX文档爬虫相关命令
+# 测试爬虫功能
+test-crawler:
+	python scripts/test_crawler.py
+
+# 运行基础版爬虫
+crawl-okx-basic:
+	python scripts/run_okx_crawler.py --mode basic
+
+# 运行增强版爬虫
+crawl-okx-advanced:
+	python scripts/run_okx_crawler.py --mode advanced
+
+# 运行增强版爬虫（显示浏览器）
+crawl-okx-debug:
+	python scripts/run_okx_crawler.py --mode advanced --no-headless --verbose
+
+# 安装爬虫依赖
+install-crawler-deps:
+	pip install aiohttp aiofiles beautifulsoup4 lxml selenium fake-useragent
 
 # Help target
 help:
@@ -189,6 +210,13 @@ help:
 	@echo "  make build                                     Build Docker image"
 	@echo "  make install                                   Run the installation script (install.sh)"
 	@echo "  make uninstall                                 Remove conda environment"
+	@echo ""
+	@echo "🕷️  Crawler Commands:"
+	@echo "  make test-crawler                              Test crawler functionality"
+	@echo "  make crawl-okx-basic                           Run basic OKX crawler"
+	@echo "  make crawl-okx-advanced                        Run advanced OKX crawler"
+	@echo "  make crawl-okx-debug                           Run crawler with browser visible"
+	@echo "  make install-crawler-deps                      Install crawler dependencies"
 	@echo ""
 	@echo "📚 Examples:"
 	@echo "  make run-tasks config=notebook_tasks.yml       # Docker"

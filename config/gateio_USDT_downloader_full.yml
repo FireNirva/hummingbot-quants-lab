@@ -1,0 +1,21 @@
+tasks:  
+  gateio_USDT_downloader:  
+    enabled: true  
+    task_class: tasks.data_collection.candles_downloader_task.CandlesDownloaderTask  
+    frequency_hours: 99999  
+    config:  
+      connector_name: gate_io  
+      intervals:  
+      - 15m  
+      - 4h  
+      - 1d  
+      - 1h  
+      days_data_retention: 90  
+      quote_asset: "USDT"  
+      min_notional_size: 10  
+      timescale_config:  
+        db_host: timescaledb  
+        db_port: 5432  
+        db_user: admin  
+        db_password: admin  
+        db_name: timescaledb

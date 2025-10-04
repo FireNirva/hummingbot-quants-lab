@@ -43,3 +43,10 @@ dependencies:
       - nbformat
       - nbclient
       - kaleido
+      # 爬虫相关依赖
+      - aiohttp>=3.8.0
+      - aiofiles>=23.0.0
+      - beautifulsoup4>=4.12.0
+      - lxml>=4.9.0
+      - selenium>=4.15.0
+      - fake-useragent>=1.4.0
