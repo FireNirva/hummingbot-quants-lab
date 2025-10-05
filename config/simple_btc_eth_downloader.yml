@@ -1,0 +1,48 @@
+# 简单数据收集示例配置
+# 用途: 下载 BTC 和 ETH 的15分钟和1小时K线数据
+#
+# 使用方法:
+# 1. 单次运行: python cli.py trigger-task --task btc_eth_downloader --config simple_btc_eth_downloader.yml
+# 2. 持续运行: python cli.py run-tasks --config simple_btc_eth_downloader.yml
+
+tasks:
+  btc_eth_downloader:
+    enabled: true
+    task_class: app.tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    
+    # 调度配置：每2小时运行一次
+    schedule:
+      type: frequency
+      frequency_hours: 2.0
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 60
+    timeout_seconds: 600  # 10分钟超时
+    
+    # 任务特定配置
+    config:
+      # 交易所选择
+      connector_name: "binance_perpetual"
+      
+      # 指定要下载的交易对
+      trading_pairs:
+        - "BTC-USDT"
+        - "ETH-USDT"
+      
+      # 时间间隔
+      intervals:
+        - "15m"
+        - "1h"
+      
+      # 数据保留天数
+      days_data_retention: 30
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - candles
+      - btc
+      - eth
+
