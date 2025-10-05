@@ -35,6 +35,11 @@
    - 源码修改建议
    - 临时解决方案
 
+6. **[MongoDB 池子筛选数据存储](./MONGODB_POOL_STORAGE.md)** 🗄️
+   - 数据存储策略详解
+   - 文档结构和字段说明
+   - 查询示例和最佳实践
+
 ---
 
 ## 📖 文档结构
@@ -46,6 +51,7 @@ docs/
 ├── DATA_COLLECTION_GUIDE.md           ← 📚 完整指南
 ├── DATA_COLLECTION_FLOW.md            ← 🔍 流程详解
 ├── DATA_STORAGE_STRATEGY.md           ← 💾 存储策略
+├── MONGODB_POOL_STORAGE.md            ← 🗄️ MongoDB 池子数据结构
 ├── KNOWN_ISSUES.md                    ← 🐛 已知问题
 └── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
 ```
@@ -76,6 +82,10 @@ docs/
 #### 查看示例配置
 ➡️ [数据收集指南 - 实战演练](./DATA_COLLECTION_GUIDE.md#六实战演练)  
 ➡️ `config/simple_btc_eth_downloader.yml`（项目根目录）
+
+#### 了解数据存储结构
+➡️ [MongoDB 池子数据存储](./MONGODB_POOL_STORAGE.md) 🆕  
+➡️ [数据存储策略](./DATA_STORAGE_STRATEGY.md)
 
 ---
 
