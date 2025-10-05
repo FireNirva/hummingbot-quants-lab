@@ -45,6 +45,12 @@
    - 如何添加 OHLCV K线数据下载
    - 完整实现代码和示例
 
+8. **[GeckoTerminal API 完整参考](./GECKOTERMINAL_API_REFERENCE.md)** 📖
+   - API 完整文档（重新整理版）
+   - 清晰的分类和索引
+   - 所有 endpoints 详细说明
+   - Python 客户端封装示例
+
 ---
 
 ## 📖 文档结构
@@ -58,9 +64,10 @@ docs/
 ├── DATA_STORAGE_STRATEGY.md           ← 💾 存储策略
 ├── MONGODB_POOL_STORAGE.md            ← 🗄️ MongoDB 池子数据结构
 ├── GECKOTERMINAL_API_USAGE.md         ← 🔌 GeckoTerminal API 使用
+├── GECKOTERMINAL_API_REFERENCE.md     ← 📖 GeckoTerminal API 完整参考（推荐）
 ├── KNOWN_ISSUES.md                    ← 🐛 已知问题
 ├── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
-└── geckoterminal_api.md               ← 📖 GeckoTerminal API 完整文档
+└── geckoterminal_api.md               ← 📄 GeckoTerminal API 原始文档
 ```
 
 ---
