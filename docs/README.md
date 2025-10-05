@@ -25,6 +25,16 @@
    - 组件交互关系
    - 适合想要深入了解系统的用户
 
+4. **[数据存储策略](./DATA_STORAGE_STRATEGY.md)**
+   - 为什么 CLOB 数据用 Parquet 而不是 MongoDB
+   - 数据存储架构设计
+   - 最佳实践
+
+5. **[已知问题和解决方案](./KNOWN_ISSUES.md)** 🐛
+   - Pool Screener 费率匹配问题
+   - 源码修改建议
+   - 临时解决方案
+
 ---
 
 ## 📖 文档结构
@@ -34,7 +44,10 @@ docs/
 ├── README.md                           ← 你在这里
 ├── QUICK_START_DATA_COLLECTION.md     ← 🚀 快速上手（推荐起点）
 ├── DATA_COLLECTION_GUIDE.md           ← 📚 完整指南
-└── DATA_COLLECTION_FLOW.md            ← 🔍 流程详解
+├── DATA_COLLECTION_FLOW.md            ← 🔍 流程详解
+├── DATA_STORAGE_STRATEGY.md           ← 💾 存储策略
+├── KNOWN_ISSUES.md                    ← 🐛 已知问题
+└── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
 ```
 
 ---
@@ -57,7 +70,8 @@ docs/
 
 #### 解决问题
 ➡️ [快速上手 - 故障排查](./QUICK_START_DATA_COLLECTION.md#故障排查)  
-➡️ [数据收集指南 - 常见问题](./DATA_COLLECTION_GUIDE.md#七常见问题与最佳实践)
+➡️ [数据收集指南 - 常见问题](./DATA_COLLECTION_GUIDE.md#七常见问题与最佳实践)  
+➡️ [已知问题和解决方案](./KNOWN_ISSUES.md) 🆕
 
 #### 查看示例配置
 ➡️ [数据收集指南 - 实战演练](./DATA_COLLECTION_GUIDE.md#六实战演练)  
@@ -76,6 +90,7 @@ docs/
 
 ### 专用配置
 - `config/base_ecosystem_downloader_full.yml` - Base 生态系统
+- `config/base_pools_production.yml` - Base 链池子筛选（生产） 🆕
 - `config/sol_ecosystem_downloader_full.yml` - Solana 生态系统
 - `config/gateio_USDT_downloader_full.yml` - Gate.io USDT 交易对
 
@@ -164,5 +179,5 @@ make run-db
 
 **祝你使用愉快！Happy Coding! 🚀📊**
 
-*Last updated: 2024-10-04*
+*Last updated: 2025-10-05*
 
