@@ -1,0 +1,229 @@
+# Base Chain Pool Screener - 生产环境配置
+# 
+# 用途: 获取 Base 链上所有主要 USDC 配对的流动性池
+# 
+# 重要说明:
+# - Uniswap V3 的池子名称包含费率（如 "USDC 0.01%"）
+# - 源代码使用精确匹配，因此需要为每个费率创建单独的任务
+# - 详见文档: docs/KNOWN_ISSUES.md
+#
+# 运行方法:
+# 1. 确保 MongoDB 正在运行: python cli.py start-db
+# 2. 设置环境变量: export MONGO_URI='mongodb://admin:admin@localhost:27017/quants_lab?authSource=admin'
+# 3. 运行任务: python cli.py run-tasks --config config/base_pools_production.yml
+# 4. 查看数据: 在 research_notebooks/screeners/base_arbitrage_pools_analysis.ipynb
+
+tasks:
+  # ============================================================================
+  # USDC 0.01% 费率池子（Uniswap V3 最常见）
+  # ============================================================================
+  base_usdc_001_percent:
+    enabled: true
+    task_class: app.tasks.data_collection.pools_screener.PoolsScreenerTask
+    
+    schedule:
+      type: frequency
+      frequency_hours: 1.0  # 每小时更新一次
+      timezone: UTC
+    
+    max_retries: 3
+    retry_delay_seconds: 180
+    timeout_seconds: 600
+    
+    config:
+      network: "base"
+      quote_asset: "USDC 0.01%"  # 注意：包含费率
+      
+      # 宽松的筛选参数（捕获所有池子）
+      min_pool_age_days: 99999      # 接受所有池龄
+      min_fdv: 1000                 # 最低 FDV: $1K
+      max_fdv: 10000000000          # 最高 FDV: $10B
+      min_volume_24h: 1000          # 最低 24h 交易量: $1K
+      min_liquidity: 1000           # 最低流动性: $1K
+      min_transactions_24h: 0       # 不限制交易笔数
+    
+    tags:
+      - base
+      - usdc
+      - production
+      - 0.01%
+
+  # ============================================================================
+  # USDC 0.05% 费率池子
+  # ============================================================================
+  base_usdc_005_percent:
+    enabled: true
+    task_class: app.tasks.data_collection.pools_screener.PoolsScreenerTask
+    
+    schedule:
+      type: frequency
+      frequency_hours: 1.0
+      timezone: UTC
+    
+    max_retries: 3
+    retry_delay_seconds: 180
+    timeout_seconds: 600
+    
+    config:
+      network: "base"
+      quote_asset: "USDC 0.05%"
+      min_pool_age_days: 99999
+      min_fdv: 1000
+      max_fdv: 10000000000
+      min_volume_24h: 1000
+      min_liquidity: 1000
+      min_transactions_24h: 0
+    
+    tags:
+      - base
+      - usdc
+      - production
+      - 0.05%
+
+  # ============================================================================
+  # USDC 无费率标记（原始格式）
+  # ============================================================================
+  base_usdc_plain:
+    enabled: true
+    task_class: app.tasks.data_collection.pools_screener.PoolsScreenerTask
+    
+    schedule:
+      type: frequency
+      frequency_hours: 1.0
+      timezone: UTC
+    
+    max_retries: 3
+    retry_delay_seconds: 180
+    timeout_seconds: 600
+    
+    config:
+      network: "base"
+      quote_asset: "USDC"  # 无费率标记
+      min_pool_age_days: 99999
+      min_fdv: 1000
+      max_fdv: 10000000000
+      min_volume_24h: 1000
+      min_liquidity: 1000
+      min_transactions_24h: 0
+    
+    tags:
+      - base
+      - usdc
+      - production
+      - plain
+
+  # ============================================================================
+  # USDC 0.3% 费率池子（较少见）
+  # ============================================================================
+  base_usdc_03_percent:
+    enabled: true
+    task_class: app.tasks.data_collection.pools_screener.PoolsScreenerTask
+    
+    schedule:
+      type: frequency
+      frequency_hours: 2.0  # 较少见的池子，2小时更新一次
+      timezone: UTC
+    
+    max_retries: 3
+    retry_delay_seconds: 180
+    timeout_seconds: 600
+    
+    config:
+      network: "base"
+      quote_asset: "USDC 0.3%"
+      min_pool_age_days: 99999
+      min_fdv: 1000
+      max_fdv: 10000000000
+      min_volume_24h: 1000
+      min_liquidity: 1000
+      min_transactions_24h: 0
+    
+    tags:
+      - base
+      - usdc
+      - production
+      - 0.3%
+
+  # ============================================================================
+  # USDC 1% 费率池子（新池子中偶尔出现）
+  # ============================================================================
+  base_usdc_1_percent:
+    enabled: true
+    task_class: app.tasks.data_collection.pools_screener.PoolsScreenerTask
+    
+    schedule:
+      type: frequency
+      frequency_hours: 2.0
+      timezone: UTC
+    
+    max_retries: 3
+    retry_delay_seconds: 180
+    timeout_seconds: 600
+    
+    config:
+      network: "base"
+      quote_asset: "USDC 1%"
+      min_pool_age_days: 99999
+      min_fdv: 1000
+      max_fdv: 10000000000
+      min_volume_24h: 1000
+      min_liquidity: 1000
+      min_transactions_24h: 0
+    
+    tags:
+      - base
+      - usdc
+      - production
+      - 1%
+
+# ============================================================================
+# 配置说明
+# ============================================================================
+#
+# 为什么需要多个任务？
+# 
+# Base 链使用 Uniswap V3，池子名称格式为：
+#   TOKEN_A / TOKEN_B FEE_RATE
+#   例如: "WETH / USDC 0.01%"
+#
+# 源代码使用精确匹配：
+#   pools[pools['quote'] == self.quote_asset]
+#
+# 这导致：
+#   - quote_asset="USDC" 只能匹配 "USDC"
+#   - 无法匹配 "USDC 0.01%", "USDC 0.05%" 等
+#
+# 解决方案：
+#   为每个常见费率创建单独的任务
+#
+# 如需修改源码以支持模糊匹配，请参考：
+#   docs/KNOWN_ISSUES.md
+#
+# ============================================================================
+# 数据存储
+# ============================================================================
+#
+# MongoDB 数据库: quants_lab
+# MongoDB 集合: pools
+#
+# 查询示例:
+# ```python
+# from pymongo import MongoClient
+# 
+# client = MongoClient('mongodb://admin:admin@localhost:27017/quants_lab?authSource=admin')
+# db = client['quants_lab']
+# 
+# # 获取最新结果
+# results = list(db.pools.find({}).sort("timestamp", -1).limit(5))
+# 
+# # 提取所有筛选后的池子
+# all_pools = []
+# for result in results:
+#     all_pools.extend(result.get('filtered_trending_pools', []))
+#     all_pools.extend(result.get('filtered_new_pools', []))
+# 
+# print(f"Total pools: {len(all_pools)}")
+# ```
+#
+# ============================================================================
+
