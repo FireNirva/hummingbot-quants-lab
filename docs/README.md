@@ -40,6 +40,11 @@
    - 文档结构和字段说明
    - 查询示例和最佳实践
 
+7. **[GeckoTerminal API 使用指南](./GECKOTERMINAL_API_USAGE.md)** 🔌
+   - 当前使用的 API endpoints
+   - 如何添加 OHLCV K线数据下载
+   - 完整实现代码和示例
+
 ---
 
 ## 📖 文档结构
@@ -52,8 +57,10 @@ docs/
 ├── DATA_COLLECTION_FLOW.md            ← 🔍 流程详解
 ├── DATA_STORAGE_STRATEGY.md           ← 💾 存储策略
 ├── MONGODB_POOL_STORAGE.md            ← 🗄️ MongoDB 池子数据结构
+├── GECKOTERMINAL_API_USAGE.md         ← 🔌 GeckoTerminal API 使用
 ├── KNOWN_ISSUES.md                    ← 🐛 已知问题
-└── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
+├── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
+└── geckoterminal_api.md               ← 📖 GeckoTerminal API 完整文档
 ```
 
 ---
