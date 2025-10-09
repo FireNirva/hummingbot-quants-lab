@@ -157,9 +157,62 @@ mongo mongodb://admin:admin@localhost:27017/quants_lab
 
 ---
 
+## 📥 Freqtrade 历史数据导入
+
+### 快速下载
+
+```bash
+# 下载 6 天的 1m 数据（Gate.io Base 生态代币）
+python scripts/import_freqtrade_data.py \
+  --config config/base_ecosystem_downloader_full.yml \
+  --days 6 \
+  --timeframe 1m
+
+# 下载 7 天的 5m 数据（推荐）
+python scripts/import_freqtrade_data.py \
+  --config config/base_ecosystem_downloader_full.yml \
+  --days 7 \
+  --timeframe 5m
+```
+
+### 增量添加历史数据
+
+```bash
+# 追加更早的历史数据（6天）
+python scripts/import_freqtrade_data.py \
+  --config config/base_ecosystem_downloader_full.yml \
+  --days 6 \
+  --timeframe 1m \
+  --prepend
+```
+
+### 多交易所支持
+
+```bash
+# 从 Binance 下载（覆盖配置文件）
+python scripts/import_freqtrade_data.py \
+  --config config/base_ecosystem_downloader_full.yml \
+  --days 30 \
+  --timeframe 5m \
+  --exchange binance
+```
+
+### 查看数据
+
+```bash
+# 查看所有已下载的数据
+python scripts/view_parquet.py --all
+
+# 查看特定交易对
+python scripts/view_parquet.py "app/data/cache/candles/gate_io|VIRTUAL-USDT|1m.parquet"
+```
+
+---
+
 ## 📚 相关文档
 
 - [Base 套利完整指南](docs/BASE_ARBITRAGE_GUIDE.md)
+- [Freqtrade 数据导入指南](docs/FREQTRADE_IMPORT.md) ⭐ 新增
 - [数据收集指南](docs/DATA_COLLECTION_GUIDE.md)
 - [快速上手](docs/QUICK_START_DATA_COLLECTION.md)
 - [数据存储策略](docs/DATA_STORAGE_STRATEGY.md)

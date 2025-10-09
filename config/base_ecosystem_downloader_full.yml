@@ -1,39 +1,64 @@
+# Gate.io Base 生态代币数据收集配置
+# 用途: 下载 Base 生态代币的1分钟K线数据
+#
+# 使用方法:
+# 1. 单次运行: python cli.py trigger-task --task gateio_base_ecosystem_downloader --config base_ecosystem_downloader_full.yml
+# 2. 持续运行: python cli.py run-tasks --config base_ecosystem_downloader_full.yml
+
 tasks:
   gateio_base_ecosystem_downloader:
     enabled: true
-    task_class: tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
-    frequency_hours: 99999
+    task_class: app.tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    
+    # 调度配置：每15分钟运行一次，持续积累数据
+    schedule:
+      type: frequency
+      frequency_hours: 0.25
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 60
+    timeout_seconds: 600  # 10分钟超时
+    
+    # 任务特定配置
     config:
-      connector_name: gate_io
+      # 交易所选择
+      connector_name: "gate_io"
+      
+      # 指定要下载的交易对
       trading_pairs:
-      - VIRTUAL-USDT
-      # - BRETT-USDT
-      # - AERO-USDT
-      # - AIXBT-USDT
-      # - FAI-USDT
-      # - COOKIE-USDT
-      # - MIGGLES-USDT
-      # - ZORA-USDT
-      # - EDGE-USDT
-      # - BENJI-USDT
-      # - GPS-USDT
-      # - XSWAP-USDT
-      # - LVLY-USDT
-      # - HINT-USDT
-      # - SKOP-USDT
-      # - TALENT-USDT
-      # - GMRT-USDT
-      # - TRC-USDT
-      # - ZAP-USDT
-      # - FORM1-USDT
-      # - AWS-USDT
-      # - BASEX-USDT
+        - "VIRTUAL-USDT"
+        - "BRETT-USDT"
+        - "AERO-USDT"
+        - "AIXBT-USDT"
+        - "FAI-USDT"
+        - "COOKIE-USDT"
+        - "MIGGLES-USDT"
+        - "ZORA-USDT"
+        - "EDGE-USDT"
+        - "BENJI-USDT"
+        - "GPS-USDT"
+        - "XSWAP-USDT"
+        - "LVLY-USDT"
+        - "HINT-USDT"
+        - "SKOP-USDT"
+        - "TALENT-USDT"
+        - "GMRT-USDT"
+        - "TRC-USDT"
+        - "ZAP-USDT"
+        - "AWS-USDT"
+      
+      # 时间间隔 (Gate.io API限制: 1分钟最多约0.69天 = 1000点)
       intervals:
-      - 15m
-      days_data_retention: 14
-      timescale_config:
-        db_host: timescaledb
-        db_port: 5432
-        db_user: admin
-        db_password: admin
-        db_name: timescaledb
+        - "1m"
+      
+      # 数据保留天数 (首次下载0.6天，之后增量更新可累积到30天+)
+      days_data_retention: 1
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - candles
+      - gate_io
+      - base_ecosystem

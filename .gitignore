@@ -163,3 +163,8 @@ cython_debug/
 
 */*.DS_Storecache/
 outputs/
+
+# QuantsLab / Freqtrade data directories
+# Downloaded market data and cache files
+user_data/
+app/data/
