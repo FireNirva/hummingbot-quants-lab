@@ -53,8 +53,8 @@ tasks:
       intervals:
         - "1m"
       
-      # 数据保留天数 (首次下载0.6天，之后增量更新可累积到30天+)
-      days_data_retention: 1
+    # 数据保留天数 (每次增量下载0.6天 = 864分钟，符合1000点限制)
+    days_data_retention: 0.6
     
     # 标签（用于分类和筛选）
     tags:
