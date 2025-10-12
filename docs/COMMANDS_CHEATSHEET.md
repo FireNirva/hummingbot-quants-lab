@@ -209,10 +209,65 @@ python scripts/view_parquet.py "app/data/cache/candles/gate_io|VIRTUAL-USDT|1m.p
 
 ---
 
+## 🗺️ CEX-DEX 池子映射
+
+### CLI 脚本方式
+
+```bash
+# 自动检测所有Gate.io交易对，映射到Base链
+python scripts/build_pool_mapping.py --network base --connector gate_io
+
+# 指定特定交易对
+python scripts/build_pool_mapping.py \
+  --network base \
+  --pairs AERO-USDT,BRETT-USDT,VIRTUAL-USDT
+
+# 保留top 5池子（默认3）
+python scripts/build_pool_mapping.py \
+  --network base \
+  --connector gate_io \
+  --top-n 5
+```
+
+### 任务系统方式
+
+```bash
+# 验证配置
+python cli.py validate-config --config config/pool_mapping_base.yml
+
+# 手动触发一次（测试）
+python cli.py trigger-task \
+  --task base_pool_mapping \
+  --config config/pool_mapping_base.yml
+
+# 调度运行（每24小时）
+python cli.py run-tasks --config config/pool_mapping_base.yml
+
+# 后台运行
+nohup python cli.py run-tasks --config config/pool_mapping_base.yml > logs/pool_mapping.log 2>&1 &
+```
+
+### 查看映射数据
+
+```bash
+# 查看Parquet文件
+python -c "
+import pandas as pd
+df = pd.read_parquet('app/data/processed/pool_mappings/base_gate_io_pool_map.parquet')
+print(df[['trading_pair', 'dex_id', 'pool_address', 'reserve_usd', 'rank']].head(10))
+"
+
+# 查看原始JSON（某个交易对）
+cat app/data/raw/geckoterminal/search_pools/base/AERO-USDT.json | python -m json.tool
+```
+
+---
+
 ## 📚 相关文档
 
 - [Base 套利完整指南](docs/BASE_ARBITRAGE_GUIDE.md)
-- [Freqtrade 数据导入指南](docs/FREQTRADE_IMPORT.md) ⭐ 新增
+- [CEX-DEX 池子映射指南](docs/POOL_MAPPING_GUIDE.md) ⭐ 新增
+- [Freqtrade 数据导入指南](docs/FREQTRADE_IMPORT.md)
 - [数据收集指南](docs/DATA_COLLECTION_GUIDE.md)
 - [快速上手](docs/QUICK_START_DATA_COLLECTION.md)
 - [数据存储策略](docs/DATA_STORAGE_STRATEGY.md)

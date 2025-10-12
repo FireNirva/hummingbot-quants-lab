@@ -40,12 +40,18 @@
    - 文档结构和字段说明
    - 查询示例和最佳实践
 
-7. **[GeckoTerminal API 使用指南](./GECKOTERMINAL_API_USAGE.md)** 🔌
+7. **[CEX-DEX池子映射指南](./POOL_MAPPING_GUIDE.md)** 🗺️ 🆕
+   - 自动将CEX交易对映射到DEX高流动性池子
+   - CLI脚本和任务系统两种使用方式
+   - 完整的配置和故障排除指南
+   - 与下游任务集成示例
+
+8. **[GeckoTerminal API 使用指南](./GECKOTERMINAL_API_USAGE.md)** 🔌
    - 当前使用的 API endpoints
    - 如何添加 OHLCV K线数据下载
    - 完整实现代码和示例
 
-8. **[GeckoTerminal API 完整参考](./GECKOTERMINAL_API_REFERENCE.md)** 📖
+9. **[GeckoTerminal API 完整参考](./GECKOTERMINAL_API_REFERENCE.md)** 📖
    - API 完整文档（重新整理版）
    - 清晰的分类和索引
    - 所有 endpoints 详细说明
@@ -63,8 +69,11 @@ docs/
 ├── DATA_COLLECTION_FLOW.md            ← 🔍 流程详解
 ├── DATA_STORAGE_STRATEGY.md           ← 💾 存储策略
 ├── MONGODB_POOL_STORAGE.md            ← 🗄️ MongoDB 池子数据结构
+├── POOL_MAPPING_GUIDE.md              ← 🗺️ CEX-DEX池子映射（新）
 ├── GECKOTERMINAL_API_USAGE.md         ← 🔌 GeckoTerminal API 使用
 ├── GECKOTERMINAL_API_REFERENCE.md     ← 📖 GeckoTerminal API 完整参考（推荐）
+├── FREQTRADE_IMPORT.md                ← 📥 Freqtrade历史数据导入
+├── COMMANDS_CHEATSHEET.md             ← ⚡ 命令速查表
 ├── KNOWN_ISSUES.md                    ← 🐛 已知问题
 ├── BASE_ARBITRAGE_GUIDE.md            ← 📊 Base 链套利指南
 └── geckoterminal_api.md               ← 📄 GeckoTerminal API 原始文档
@@ -100,6 +109,10 @@ docs/
 #### 了解数据存储结构
 ➡️ [MongoDB 池子数据存储](./MONGODB_POOL_STORAGE.md) 🆕  
 ➡️ [数据存储策略](./DATA_STORAGE_STRATEGY.md)
+
+#### 映射CEX交易对到DEX池子
+➡️ [CEX-DEX池子映射指南](./POOL_MAPPING_GUIDE.md) 🆕  
+➡️ 自动查找高流动性DEX池子，支持CLI和任务系统
 
 ---
 

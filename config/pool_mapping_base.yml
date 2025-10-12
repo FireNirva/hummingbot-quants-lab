@@ -1,0 +1,37 @@
+# Base链池子映射配置
+# 用途: 将Gate.io交易对映射到Base链DEX池子
+#
+# 使用方法:
+# 1. 手动触发: python cli.py trigger-task --task base_pool_mapping --config config/pool_mapping_base.yml
+# 2. 调度运行: python cli.py run-tasks --config config/pool_mapping_base.yml
+
+tasks:
+  base_pool_mapping:
+    enabled: true
+    task_class: app.tasks.data_collection.pool_mapping_task.PoolMappingTask
+    
+    # 调度配置：每24小时运行一次
+    schedule:
+      type: frequency
+      frequency_hours: 24.0
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 300    # 5分钟
+    timeout_seconds: 1800        # 30分钟
+    
+    # 任务特定配置
+    config:
+      network: "base"
+      connector: "gate_io"
+      top_n: 3                   # 每个交易对保留top 3池子
+      # trading_pairs: []         # 留空表示自动检测
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - pool_mapping
+      - base
+      - gate_io
+      - data_collection
+
