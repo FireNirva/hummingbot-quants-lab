@@ -123,6 +123,21 @@ class PoolMappingService:
                     attrs = pool_item.get('attributes', {})
                     relationships = pool_item.get('relationships', {})
                     
+                    # 提取池子名称（用于过滤）
+                    pool_name = attrs.get('name', '')
+                    
+                    # 过滤：只保留base token与查询代币匹配的池子
+                    # 池子名称格式通常是 "BASE / QUOTE" 或 "BASE / QUOTE 0.3%"
+                    if pool_name:
+                        # 提取base token（取第一个'/'前的部分，去除空格）
+                        base_token_in_name = pool_name.split('/')[0].strip().upper()
+                        query_token_upper = token_symbol.upper()
+                        
+                        # 如果base token不匹配，跳过这个池子
+                        if base_token_in_name != query_token_upper:
+                            logger.debug(f"Skipping pool '{pool_name}' - base token '{base_token_in_name}' != query '{query_token_upper}'")
+                            continue
+                    
                     # 提取DEX ID
                     dex_id = ''
                     if 'dex' in relationships:
@@ -133,7 +148,7 @@ class PoolMappingService:
                     # 提取池子信息
                     pool_info = {
                         'pool_address': attrs.get('address', ''),
-                        'name': attrs.get('name', ''),
+                        'name': pool_name,
                         'dex_id': dex_id,
                         'reserve_usd': float(attrs.get('reserve_in_usd', 0) or 0),
                         'volume_usd_h24': float(attrs.get('volume_usd', {}).get('h24', 0) or 0),
