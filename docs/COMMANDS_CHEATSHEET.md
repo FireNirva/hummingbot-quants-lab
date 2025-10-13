@@ -263,10 +263,180 @@ cat app/data/raw/geckoterminal/search_pools/base/AERO-USDT.json | python -m json
 
 ---
 
+## 📈 DEX OHLCV 数据下载
+
+### CLI 脚本方式（手动下载）
+
+```bash
+# 快速开始：下载7天数据
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --intervals 5m 15m 1h \
+  --lookback-days 7
+
+# 与CEX数据对齐时间范围
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --connector gate_io \
+  --align-with-cex
+
+# 保存原始API响应（调试用）
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --save-raw
+
+# 限制请求数（避免超速）
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --max-requests 50
+
+# 指定特定交易对
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --pairs AERO-USDT BRETT-USDT
+
+# 自定义速率限制
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --rate-limit 2.0  # 2秒间隔
+```
+
+### 任务系统方式（调度下载）
+
+```bash
+# 验证配置
+python cli.py validate-config --config config/dex_candles_base.yml
+
+# 手动触发一次（测试）
+python cli.py trigger-task \
+  --task dex_candles_downloader \
+  --config config/dex_candles_base.yml
+
+# 调度运行（每小时）
+python cli.py run-tasks --config config/dex_candles_base.yml
+
+# 后台运行
+nohup python cli.py run-tasks --config config/dex_candles_base.yml > logs/dex_candles.log 2>&1 &
+```
+
+### 查看DEX数据
+
+```bash
+# 查看下载的DEX数据
+python -c "
+import pandas as pd
+df = pd.read_parquet('app/data/cache/candles/geckoterminal_base|AERO-USDT|5m.parquet')
+print(df.tail(10))
+print(f'\n总计: {len(df)} 条K线')
+print(f'时间范围: {df.index.min()} 到 {df.index.max()}')
+"
+
+# 查看所有DEX数据文件
+ls -lh app/data/cache/candles/geckoterminal_*
+
+# 比较CEX vs DEX数据
+python -c "
+import pandas as pd
+
+# 读取CEX和DEX数据
+cex_df = pd.read_parquet('app/data/cache/candles/gate_io|AERO-USDT|5m.parquet')
+dex_df = pd.read_parquet('app/data/cache/candles/geckoterminal_base|AERO-USDT|5m.parquet')
+
+print(f'CEX: {len(cex_df)} 条K线')
+print(f'DEX: {len(dex_df)} 条K线')
+print(f'\nCEX价格范围: {cex_df[\"close\"].min():.4f} - {cex_df[\"close\"].max():.4f}')
+print(f'DEX价格范围: {dex_df[\"close\"].min():.4f} - {dex_df[\"close\"].max():.4f}')
+
+# 计算重叠时间段的价差
+merged = cex_df.join(dex_df, how='inner', rsuffix='_dex')
+merged['spread'] = (merged['close_dex'] - merged['close']) / merged['close'] * 100
+print(f'\n平均价差: {merged[\"spread\"].mean():.2f}%')
+"
+```
+
+### 数据验证
+
+```bash
+# 验证数据质量
+python -c "
+import pandas as pd
+
+df = pd.read_parquet('app/data/cache/candles/geckoterminal_base|AERO-USDT|5m.parquet')
+
+# 检查重复
+assert df.index.is_unique, '发现重复时间戳'
+
+# 检查NaN
+assert not df.isnull().any().any(), '发现NaN值'
+
+# 检查时间连续性
+time_diff = df.index.to_series().diff()
+expected_diff = pd.Timedelta(minutes=5)
+gaps = time_diff[time_diff > expected_diff * 1.5]
+print(f'数据连续性: {len(gaps)} 个间隙')
+
+print('✓ 数据验证通过')
+"
+```
+
+---
+
+## 📊 CEX-DEX 价差分析与可视化
+
+### 价差分析
+
+```bash
+# 单交易对详细分析
+python scripts/analyze_cex_dex_spread.py --pair AERO-USDT --interval 1m
+
+# 指定成交量阈值
+python scripts/analyze_cex_dex_spread.py --pair AERO-USDT --volume-threshold 500
+
+# 多交易对对比
+python scripts/analyze_cex_dex_spread.py --compare-all
+```
+
+### 可视化图表生成
+
+```bash
+# 生成价差分析图表（需要先安装 matplotlib）
+python scripts/plot_spread_analysis.py --pair AERO-USDT --interval 1m
+
+# 其他交易对
+python scripts/plot_spread_analysis.py --pair VIRTUAL-USDT --interval 1m
+```
+
+**生成的图表**:
+- `spread_timeseries_{pair}_{interval}.png` - 价差时序图（双曲线）
+- `spread_distribution_{pair}_{interval}.png` - 价差分布直方图
+- `liquidity_spread_{pair}_{interval}.png` - 流动性-价差散点图
+
+**保存位置**: `app/data/processed/plots/`
+
+### 查看分析结果
+
+```bash
+# 查看价差数据
+python scripts/view_parquet.py app/data/processed/spread_analysis/spread_analysis_AERO-USDT_1m.parquet
+
+# 查看生成的图表
+open app/data/processed/plots/spread_timeseries_AERO-USDT_1m.png
+
+# 查看所有图表和数据
+ls -lh app/data/processed/plots/
+ls -lh app/data/processed/spread_analysis/
+```
+
+💡 **说明**: 价差分析支持双模式（连续时间轴 vs 事件时间），详见 [CEX-DEX 价差分析指南](docs/CEX_DEX_SPREAD_ANALYSIS.md)
+
+---
+
 ## 📚 相关文档
 
+- [CEX-DEX 价差分析指南](docs/CEX_DEX_SPREAD_ANALYSIS.md) ⭐ 新增
 - [Base 套利完整指南](docs/BASE_ARBITRAGE_GUIDE.md)
-- [CEX-DEX 池子映射指南](docs/POOL_MAPPING_GUIDE.md) ⭐ 新增
+- [CEX-DEX 池子映射指南](docs/POOL_MAPPING_GUIDE.md)
+- [GeckoTerminal API 使用指南](docs/GECKOTERMINAL_API_USAGE.md)
 - [Freqtrade 数据导入指南](docs/FREQTRADE_IMPORT.md)
 - [数据收集指南](docs/DATA_COLLECTION_GUIDE.md)
 - [快速上手](docs/QUICK_START_DATA_COLLECTION.md)

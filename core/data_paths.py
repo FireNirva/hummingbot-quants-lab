@@ -50,6 +50,8 @@ class DataPaths:
             self.cache_dir,
             self.processed_dir,
             self.raw_dir,
+            self.plots_dir,
+            self.spread_analysis_dir,
         ]
         for dir_path in directories:
             dir_path.mkdir(parents=True, exist_ok=True)
@@ -93,6 +95,16 @@ class DataPaths:
     def raw_dir(self) -> Path:
         """Get the raw data directory."""
         return self._data_root / 'raw'
+    
+    @property
+    def plots_dir(self) -> Path:
+        """Get the plots directory."""
+        return self._data_root / 'processed' / 'plots'
+    
+    @property
+    def spread_analysis_dir(self) -> Path:
+        """Get the spread analysis directory."""
+        return self._data_root / 'processed' / 'spread_analysis'
     
     def get_candles_path(self, filename: str) -> Path:
         """Get full path for a candles file."""

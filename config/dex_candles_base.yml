@@ -1,0 +1,45 @@
+# DEX K线数据下载配置 (Base链)
+# 用途: 从GeckoTerminal下载DEX池子的历史K线数据
+#
+# 使用方法:
+# 1. 验证配置: python cli.py validate-config --config config/dex_candles_base.yml
+# 2. 手动触发: python cli.py trigger-task --task dex_candles_downloader --config config/dex_candles_base.yml
+# 3. 调度运行: python cli.py run-tasks --config config/dex_candles_base.yml
+
+tasks:
+  dex_candles_downloader:
+    enabled: true
+    task_class: app.tasks.data_collection.dex_candles_downloader.DexCandlesDownloader
+    
+    # 调度配置：每小时运行一次
+    schedule:
+      type: frequency
+      frequency_hours: 1.0
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 300    # 5分钟
+    timeout_seconds: 3600        # 1小时超时
+    
+    # 任务配置
+    config:
+      network: "base"
+      connector: "gate_io"
+      # mapping_file: null  # 默认使用 app/data/processed/pool_mappings/base_gate_io_pool_map.parquet
+      
+      intervals:
+        - "1m"  # 下载1分钟数据，与CEX对齐
+      
+      lookback_days: 7  # 仅在没有CEX数据时使用
+      start_from_cex: true  # 🔥 启用CEX时间对齐
+      rate_limit_sleep: 1.0  # API请求间隔（秒）
+      max_requests: 200      # 单次运行最大请求数（1m数据需要更多请求）
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - dex
+      - ohlcv
+      - base
+

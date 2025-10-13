@@ -650,6 +650,191 @@ async def fetch_historical_data(days_back=30):
 
 ---
 
+## 🗺️ DEX OHLCV Download System
+
+### Quick Start
+
+**CLI Script (manual downloads)**:
+
+```bash
+# Download 7 days of 5m/15m/1h data for Base chain
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --intervals 5m 15m 1h \
+  --lookback-days 7
+
+# Align with CEX data time range
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --connector gate_io \
+  --align-with-cex
+
+# Save raw API responses
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --save-raw
+
+# Limit number of requests
+python scripts/download_dex_ohlcv.py \
+  --network base \
+  --max-requests 50
+```
+
+**Task System (scheduled)**:
+
+```bash
+# Validate config
+python cli.py validate-config --config config/dex_candles_base.yml
+
+# Run once (manual trigger)
+python cli.py trigger-task \
+  --task dex_candles_downloader \
+  --config config/dex_candles_base.yml
+
+# Scheduled execution (hourly)
+python cli.py run-tasks --config config/dex_candles_base.yml
+
+# Background execution
+nohup python cli.py run-tasks --config config/dex_candles_base.yml > logs/dex_candles.log 2>&1 &
+```
+
+### Architecture
+
+The system follows a 3-layer architecture:
+
+1. **Service Layer** (`core/services/geckoterminal_ohlcv.py`):
+   - Rate limiting and API error handling
+   - Chunked fetching with pagination
+   - Data transformation to canonical schema
+
+2. **Data Source Layer** (`core/data_sources/geckoterminal.py`):
+   - Mirrors CLOBDataSource interface
+   - In-memory caching
+   - Parquet persistence
+
+3. **Task Layer** (`app/tasks/data_collection/dex_candles_downloader.py`):
+   - Scheduled execution
+   - Batch processing
+   - Progress tracking
+
+### Data Storage
+
+**Location**: `app/data/cache/candles/`
+
+**Naming Convention**: `geckoterminal_{network}|{trading_pair}|{interval}.parquet`
+
+**Examples**:
+- `geckoterminal_base|AERO-USDT|5m.parquet`
+- `geckoterminal_base|BRETT-USDT|1h.parquet`
+
+**Schema** (matches CEX data):
+```
+timestamp (index, UTC)
+open, high, low, close, volume
+quote_asset_volume, n_trades, 
+taker_buy_base_volume, taker_buy_quote_volume
+```
+
+**Note**: DEX data from GeckoTerminal only provides basic OHLCV. Fields like `n_trades`, `taker_buy_*` are set to 0 as placeholders to maintain schema compatibility with CEX data.
+
+### API Limits
+
+- **Max per request**: 1000 data points
+- **Rate limit**: 1 second between requests (configurable)
+- **Pagination**: Use `before_timestamp` for historical data
+- **Chunking**: System automatically handles multi-chunk downloads
+
+### Incremental Updates
+
+The system automatically:
+1. Checks existing parquet files
+2. Downloads from last_timestamp - 10 candles (overlap)
+3. Deduplicates and merges
+4. Ensures no gaps in data
+
+### Configuration Parameters
+
+**Task Config** (`config/dex_candles_base.yml`):
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `network` | string | "base" | Network ID |
+| `connector` | string | "gate_io" | CEX connector for pool mapping |
+| `intervals` | list | ["5m", "15m", "1h"] | Intervals to download |
+| `lookback_days` | int | 7 | Days of historical data |
+| `start_from_cex` | bool | false | Align with CEX data range |
+| `rate_limit_sleep` | float | 1.0 | Seconds between API requests |
+| `max_requests` | int | 100 | Max requests per run |
+
+**Supported Intervals**:
+- Minutes: `1m`, `5m`, `15m`
+- Hours: `1h`, `4h`, `12h`
+- Days: `1d`
+
+### Troubleshooting
+
+**Issue**: Too many API requests  
+**Solution**: Reduce `lookback_days` or increase `rate_limit_sleep`
+
+**Issue**: Missing data for some pairs  
+**Solution**: Check pool mapping has rank=1 pools, verify pool exists on network
+
+**Issue**: Data misalignment with CEX  
+**Solution**: Use `--align-with-cex` or set `start_from_cex: true` in config
+
+**Issue**: Rate limited (429 errors)  
+**Solution**: System automatically retries with exponential backoff. Increase `rate_limit_sleep` if problem persists.
+
+**Issue**: Pool not found (404 errors)  
+**Solution**: Pool may not have sufficient trading history on GeckoTerminal. Check pool age and activity.
+
+### Integration Example
+
+Downloading DEX data to compare with CEX data:
+
+```python
+from core.data_sources.geckoterminal import GeckoTerminalDataSource
+from core.data_sources.clob import CLOBDataSource
+import asyncio
+
+async def compare_cex_dex_prices():
+    # Initialize data sources
+    gt_ds = GeckoTerminalDataSource()
+    cex_ds = CLOBDataSource()
+    
+    # Download DEX data
+    dex_candles = await gt_ds.get_candles(
+        network="base",
+        pool_address="0x6cdcb1c4a4d1c3c6d054b27ac5b77e89eafb971d",
+        trading_pair="AERO-USDT",
+        interval="5m",
+        start_time=1696118400,  # Oct 1, 2023
+        end_time=1696204800     # Oct 2, 2023
+    )
+    
+    # Download CEX data
+    cex_candles = await cex_ds.get_candles(
+        connector_name="gate_io",
+        trading_pair="AERO-USDT",
+        interval="5m",
+        start_time=1696118400,
+        end_time=1696204800
+    )
+    
+    # Compare
+    print(f"DEX: {len(dex_candles.data)} candles")
+    print(f"CEX: {len(cex_candles.data)} candles")
+    
+    # Calculate price difference
+    merged = dex_candles.data.join(cex_candles.data, how='inner', rsuffix='_cex')
+    merged['price_diff'] = merged['close'] - merged['close_cex']
+    print(f"Average price difference: ${merged['price_diff'].mean():.4f}")
+
+asyncio.run(compare_cex_dex_prices())
+```
+
+---
+
 ## 🔗 相关文档
 
 - [GeckoTerminal API 完整文档](./geckoterminal_api.md)
