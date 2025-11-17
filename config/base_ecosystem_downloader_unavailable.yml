@@ -1,0 +1,57 @@
+# Gate.io Base 生态代币数据收集配置 - 不可交易的交易对
+# 用途: 尝试下载在 Gate.io 上不可交易的交易对（用于验证或测试）
+#
+# 说明：这些交易对在 Gate.io 上可能不可交易或流动性极低
+# 包含：IRON-USDT（DEX数据可能过期）+ 7个被移除的交易对
+#
+# 使用方法:
+# 1. 单次运行: python cli.py trigger-task --task gateio_base_ecosystem_downloader --config base_ecosystem_downloader_unavailable.yml
+# 2. 持续运行: python cli.py run-tasks --config base_ecosystem_downloader_unavailable.yml
+
+tasks:
+  gateio_base_ecosystem_downloader:
+    enabled: true
+    task_class: app.tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    
+    # 调度配置：每15分钟运行一次，持续积累数据
+    schedule:
+      type: frequency
+      frequency_hours: 0.25
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 60
+    timeout_seconds: 600  # 10分钟超时
+    
+    # 任务特定配置
+    config:
+      # 交易所选择
+      connector_name: "gate_io"
+      
+      # 指定要下载的交易对（Gate.io 不可交易或有问题的交易对）
+      trading_pairs:
+        - "IRON-USDT"      # 有 DEX 数据但可能过期（uniswap-v2 池子交易量低）
+        - "AUKI-USDT"      # Gate.io 不可交易
+        - "SERV-USDT"      # Gate.io 不可交易 - OpenServ
+        - "PING-USDT"      # Gate.io 不可交易
+        - "NOICE-USDT"     # Gate.io 不可交易
+        - "IXS-USDT"       # Gate.io 不可交易
+        - "BID-USDT"       # Gate.io 不可交易 - CreatorBid
+        - "HINT-USDT"      # Gate.io 不可交易 - Hive Intelligence
+      
+      # 时间间隔 (Gate.io API限制: 1分钟最多约0.69天 = 1000点)
+      intervals:
+        - "1m"
+      
+      # 数据保留天数 (每次增量下载0.6天 = 864分钟，符合1000点限制)
+      days_data_retention: 0.6
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - candles
+      - gate_io
+      - base_ecosystem
+      - unavailable
+

@@ -1,0 +1,67 @@
+# MEXC Base 生态代币数据收集配置
+# 用途: 下载在 Gate.io 不可用但在 MEXC 可交易的 Base 生态代币的1分钟K线数据
+#
+# 说明：这些交易对在 Gate.io 上不可交易，但在 MEXC 上可以交易
+# 包含：IRON-USDT + 7个在 Gate.io 不可用的交易对
+#
+# 使用方法:
+# 1. 下载 CEX 数据:
+#    conda activate freqtrade
+#    python scripts/import_freqtrade_data.py --config config/mexc_base_ecosystem_downloader.yml --days 5 --timeframe 1m --erase
+#
+# 2. 生成池子映射:
+#    conda activate quants-lab
+#    python scripts/build_pool_mapping.py --network base --connector mexc
+#
+# 3. 下载 DEX 数据:
+#    python scripts/download_dex_ohlcv.py --network base --connector mexc --intervals 1m --align-with-cex
+#
+# 4. 运行价差分析:
+#    python scripts/analyze_cex_dex_spread.py --network base --connector mexc --interval 1m
+
+tasks:
+  mexc_base_ecosystem_downloader:
+    enabled: true
+    task_class: app.tasks.data_collection.simple_candles_downloader.SimpleCandlesDownloader
+    
+    # 调度配置：每15分钟运行一次，持续积累数据
+    schedule:
+      type: frequency
+      frequency_hours: 0.25
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 60
+    timeout_seconds: 600  # 10分钟超时
+    
+    # 任务特定配置
+    config:
+      # 交易所选择 - MEXC
+      connector_name: "mexc"
+      
+      # 指定要下载的交易对（在 MEXC 可交易的 Base 生态代币）
+      trading_pairs:
+        - "IRON-USDT"      # 有 DEX 数据但在 Gate.io 可能过期
+        - "AUKI-USDT"      # Gate.io 不可交易，MEXC 可交易
+        - "SERV-USDT"      # Gate.io 不可交易，MEXC 可交易 - OpenServ
+        - "PING-USDT"      # Gate.io 不可交易，MEXC 可交易
+        - "NOICE-USDT"     # Gate.io 不可交易，MEXC 可交易
+        - "IXS-USDT"       # Gate.io 不可交易，MEXC 可交易
+        - "BID-USDT"       # Gate.io 不可交易，MEXC 可交易 - CreatorBid
+        - "HINT-USDT"      # Gate.io 不可交易，MEXC 可交易 - Hive Intelligence
+      
+      # 时间间隔
+      intervals:
+        - "1m"
+      
+      # 数据保留天数 (MEXC 的限制可能不同，可以先尝试5天)
+      days_data_retention: 5
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - candles
+      - mexc
+      - base_ecosystem
+

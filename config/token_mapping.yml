@@ -1,0 +1,25 @@
+# CEX-DEX Token 名称映射配置
+# 用途: 处理 wrapped tokens 和不同命名规则
+#
+# 格式:
+#   CEX_SYMBOL: DEX_SYMBOL
+#
+# 说明:
+# - CEX_SYMBOL: 中心化交易所使用的代币符号
+# - DEX_SYMBOL: 去中心化交易所使用的代币符号
+# - 如果某个 token 在 CEX 和 DEX 中名称相同，无需添加映射
+
+# Base 生态 Wrapped Tokens
+IRON: wIRON
+# ETH: WETH     # 示例：如果需要映射 ETH 到 WETH
+# BTC: WBTC     # 示例：如果需要映射 BTC 到 WBTC
+
+# 其他特殊命名案例
+# USDC: USDbC   # 示例：Base 链上的 USDC 桥接版本
+# DAI: ceDAI    # 示例：Celer Bridge 版本
+
+# 品牌重命名案例
+# OLDNAME: NEWNAME
+
+# 添加更多映射...
+
