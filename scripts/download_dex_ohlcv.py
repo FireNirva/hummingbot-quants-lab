@@ -141,16 +141,60 @@ async def main():
         return 1
     
     df = pd.read_parquet(mapping_file)
-    top_pools = df[df['rank'] == 1].copy()
+    
+    # ============================================================================
+    # 新的池子选择逻辑
+    # ============================================================================
+    # 1. 过滤 DEX: 只要 uniswap-v2 或 uniswap-v3
+    # 2. 过滤 quote token: 只要 WETH, ETH, USDC, USDT
+    # 3. 符合条件后，按 volume_usd_h24 排序，选择交易量最大的
+    # ============================================================================
+    
+    # Base 链常见 quote token 地址（小写）
+    ACCEPTED_QUOTE_TOKENS = {
+        '0x4200000000000000000000000000000000000006',  # WETH
+        '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',  # USDC
+        '0x50c5725949a6f0c72e6c4a641f24049a917db0cb',  # USDT (Base)
+        # ETH 通常和 WETH 是同一个地址
+    }
+    
+    # 过滤 DEX
+    dex_filtered = df[
+        df['dex_id'].str.contains('uniswap-v2|uniswap-v3', regex=True, case=False)
+    ].copy()
+    
+    print(f"📊 池子过滤统计：")
+    print(f"   • 原始池子数: {len(df)}")
+    print(f"   • DEX过滤后 (uniswap-v2/v3): {len(dex_filtered)}")
+    
+    # 过滤 quote token
+    dex_filtered['quote_token_lower'] = dex_filtered['quote_token_address'].str.lower()
+    quote_filtered = dex_filtered[
+        dex_filtered['quote_token_lower'].isin(ACCEPTED_QUOTE_TOKENS)
+    ].copy()
+    
+    print(f"   • Quote token过滤后 (WETH/USDC/USDT): {len(quote_filtered)}")
     
     # Filter by pairs if specified
     if args.pairs:
-        top_pools = top_pools[top_pools['trading_pair'].isin(args.pairs)]
-        if top_pools.empty:
-            print(f"❌ No pools found for specified pairs: {args.pairs}")
-            return 1
+        quote_filtered = quote_filtered[quote_filtered['trading_pair'].isin(args.pairs)]
     
-    print(f"✓ Found {len(top_pools)} pools (rank=1)")
+    # 为每个交易对选择 volume_usd_h24 最高的池子（交易量最大）
+    top_pools = quote_filtered.loc[
+        quote_filtered.groupby('trading_pair')['volume_usd_h24'].idxmax()
+    ].copy()
+    
+    print(f"   • 最终选择池子数 (每个pair选24h交易量最高): {len(top_pools)}")
+    
+    if top_pools.empty:
+        print(f"❌ No pools found matching criteria")
+        return 1
+    
+    print()
+    print(f"✓ 选中的池子 DEX 分布：")
+    dex_counts = top_pools['dex_id'].value_counts()
+    for dex, count in dex_counts.items():
+        print(f"   • {dex}: {count} 个池子")
     print()
     
     # Initialize data sources

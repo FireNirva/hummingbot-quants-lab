@@ -265,7 +265,9 @@ class TaskOrchestrator:
                         asyncio.create_task(self.execute_task(task_name))
                 
                 # Wait before next scheduling check
-                await asyncio.sleep(10)  # Check every 10 seconds
+                # Check every 0.5 seconds for high-frequency tasks (5s orderbook collection)
+                # This allows sub-second precision for task scheduling
+                await asyncio.sleep(0.5)  # Check every 0.5 seconds
                 
             except asyncio.CancelledError:
                 break

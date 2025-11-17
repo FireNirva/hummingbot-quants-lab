@@ -211,6 +211,32 @@ python scripts/view_parquet.py "app/data/cache/candles/gate_io|VIRTUAL-USDT|1m.p
 
 ## 🗺️ CEX-DEX 池子映射
 
+### Token 名称映射（Wrapped Tokens）
+
+```bash
+# 编辑 token 映射配置（处理 wrapped tokens 等）
+vim config/token_mapping.yml
+
+# 添加映射示例：
+# IRON: wIRON
+# ETH: WETH
+# BTC: WBTC
+
+# 验证映射效果
+python scripts/build_pool_mapping.py \
+  --network base \
+  --connector gate_io \
+  --pairs IRON-USDT \
+  --top-n 3
+
+# 输出会显示:
+# Token mapping: IRON -> wIRON
+# Found 3 pools for IRON
+
+# 查看详细文档
+cat docs/TOKEN_MAPPING_GUIDE.md
+```
+
 ### CLI 脚本方式
 
 ```bash
@@ -392,9 +418,36 @@ python scripts/analyze_cex_dex_spread.py --pair AERO-USDT --interval 1m
 # 指定成交量阈值
 python scripts/analyze_cex_dex_spread.py --pair AERO-USDT --volume-threshold 500
 
-# 多交易对对比
+# 多交易对对比（从配置文件读取交易对列表，使用优化后的评分公式）
 python scripts/analyze_cex_dex_spread.py --compare-all
+
+# 指定其他配置文件
+python scripts/analyze_cex_dex_spread.py --compare-all --config config/your_config.yml
 ```
+
+**📊 综合评分公式（最终优化版 V4）**:
+```
+score = (avg_spread × 10 + executable_ops / 10) × volume_multiplier
+```
+
+**核心理念**：抓住本质 + 成交量倒U型优化
+- ✅ **价差×10** - 决定每次能赚多少（最重要！）
+- ✅ **机会数/10** - 决定能赚多少次（很重要！）
+- ✅ **成交量系数** - 倒U型曲线（太低或太高都降低排名）
+
+**成交量阈值（倒U型）**:
+- < $100K: 评分×0 ❌（无法套利，直接归零）
+- $100K - $500K: 评分×0.5-0.8（低流动性）
+- $500K - $10M: 评分×1.0 ✅（最佳区间）
+- $10M - $50M: 评分×0.8-0.5（竞争加剧）
+- > $50M: 评分×0.3（极度竞争）
+
+**为什么加入成交量阈值？**
+1. 太低（<$100K）→ 完全无法套利，直接归零 ❌
+2. 适中（$500K-$10M）→ 流动性充足，竞争适中 ✅
+3. 太高（>$50M）→ 市场高度有效，价差被抹平
+
+**详细说明**: [评分公式优化文档](./SCORING_FORMULA_OPTIMIZATION.md)
 
 ### 可视化图表生成
 
@@ -431,11 +484,106 @@ ls -lh app/data/processed/spread_analysis/
 
 ---
 
+## 💰 资金需求评估
+
+### 单个交易对分析
+
+```bash
+# 分析IRON-USDT的资金需求（流动性、滑点、利润）
+python scripts/analyze_liquidity_and_capital.py --pair IRON-USDT
+
+# 分析其他交易对
+python scripts/analyze_liquidity_and_capital.py --pair AERO-USDT
+python scripts/analyze_liquidity_and_capital.py --pair BRETT-USDT
+```
+
+**输出内容**:
+- 💧 流动性信息（DEX池子TVL）
+- 📊 价差信息（平均价差、可执行机会）
+- 💹 滑点分析（不同交易金额的滑点和利润）
+- 🎯 最优交易金额（1%和0.5%滑点限制）
+- 💰 建议交易金额和预期收益
+- 📈 月度ROI预估
+
+**示例输出**:
+```
+💰 IRON-USDT 资金需求分析
+
+流动性: $196,315
+平均价差: 7.97%
+
+滑点与利润分析:
+  $100:   滑点0.05%, 净利润$7.61  (7.61% ROI) ✓ 推荐
+  $1,000: 滑点0.51%, 净利润$71.55 (7.15% ROI) ✓ 推荐
+  $5,000: 滑点2.58%, 净利润$254  (5.09% ROI) ⚠️ 滑点大
+
+建议交易金额: $1,000
+单次预期利润: $71.55
+机会频率: 328次/天
+
+建议总资金: $2,000（可滚动操作）
+月度ROI: 35216%（理论值，实际需打折）
+```
+
+### 多交易对对比
+
+```bash
+# 对比所有交易对的资金需求
+python scripts/analyze_liquidity_and_capital.py --compare-all
+```
+
+**输出对比表**:
+```
+交易对          | 流动性         | 平均价差 | 最优金额    | 单次利润 | 利润率
+IRON-USDT      | $196,315      | 7.97%   | $1,953     | $130.21 | 6.67%
+BRETT-USDT     | $4,531,761    | 2.50%   | $45,091    | $541.38 | 1.20%
+AERO-USDT      | $51,335,914   | 0.34%   | $510,792   | -$4879  | -0.96% ✗
+```
+
+### 前置准备
+
+确保已运行：
+```bash
+# 1. 生成pool mapping（如果还没有）
+python scripts/build_pool_mapping.py --network base --connector gate_io --top-n 1
+
+# 2. 生成价差分析数据（每个要分析的交易对）
+python scripts/analyze_cex_dex_spread.py --pair IRON-USDT
+```
+
+### 关键指标说明
+
+- **流动性（TVL）**: DEX池子总锁仓量，决定可承载的交易规模
+- **滑点**: 大额交易的价格冲击（公式: `1 - sqrt(1 - amount/reserve)`）
+- **净利润**: `价差 - 滑点 - 手续费(0.3%) - Gas费($0.01)`
+- **最优金额**: 1%滑点限制下的最大交易金额
+- **利润率**: 单次净利润 / 交易金额 × 100%
+
+### 资金配置建议
+
+| 策略 | 资金规模 | 适合交易对 | 预期月度ROI |
+|-----|---------|-----------|------------|
+| 小资金高频 | $2K-$5K | IRON, GPS | 50% |
+| 中等稳健 | $20K-$100K | BRETT, VIRTUAL | 20% |
+| 大资金分散 | $100K+ | 多交易对组合 | 15% |
+
+💡 **重要提示**: 
+- 理论ROI需打折50%-70%（考虑竞争、延迟、失败率）
+- 建议从小额测试开始（$100-$1K）
+- 持续监控流动性变化和价差趋势
+
+详细指南: [资金需求分析指南](./CAPITAL_REQUIREMENT_ANALYSIS.md)
+
+---
+
 ## 📚 相关文档
 
-- [CEX-DEX 价差分析指南](docs/CEX_DEX_SPREAD_ANALYSIS.md) ⭐ 新增
+- [💰 资金需求分析指南](docs/CAPITAL_REQUIREMENT_ANALYSIS.md) ⭐ 最新
+- [📊 CEX-DEX 价差分析指南](docs/CEX_DEX_SPREAD_ANALYSIS.md)
+- [🔢 评分公式优化说明](docs/SCORING_FORMULA_OPTIMIZATION.md)
+- [🗺️ CEX-DEX 池子映射指南](docs/POOL_MAPPING_GUIDE.md)
+- [🔀 Token 映射指南](docs/TOKEN_MAPPING_GUIDE.md)
 - [Base 套利完整指南](docs/BASE_ARBITRAGE_GUIDE.md)
-- [CEX-DEX 池子映射指南](docs/POOL_MAPPING_GUIDE.md)
 - [GeckoTerminal API 使用指南](docs/GECKOTERMINAL_API_USAGE.md)
 - [Freqtrade 数据导入指南](docs/FREQTRADE_IMPORT.md)
 - [数据收集指南](docs/DATA_COLLECTION_GUIDE.md)

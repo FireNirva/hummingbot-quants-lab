@@ -5,6 +5,7 @@ CEX交易对到DEX池子的映射服务
 1. 从candles目录自动检测交易对
 2. 使用GeckoTerminal API搜索对应的DEX池子
 3. 保存原始API响应和处理后的映射数据
+4. 支持CEX-DEX token名称映射（处理wrapped tokens等）
 """
 import asyncio
 import json
@@ -14,6 +15,7 @@ from typing import List, Dict, Tuple, Any, Optional
 from datetime import datetime, timezone
 
 import pandas as pd
+import yaml
 from geckoterminal_py import GeckoTerminalAsyncClient
 
 from core.data_paths import data_paths
@@ -24,9 +26,16 @@ logger = logging.getLogger(__name__)
 class PoolMappingService:
     """CEX交易对到DEX池子的映射服务"""
     
-    def __init__(self):
-        """初始化服务"""
+    def __init__(self, token_mapping_file: Optional[str] = None):
+        """
+        初始化服务
+        
+        Args:
+            token_mapping_file: Token映射配置文件路径（可选）
+                               默认使用 config/token_mapping.yml
+        """
         self.gt_client = None
+        self.token_mapping = self._load_token_mapping(token_mapping_file)
         
     async def __aenter__(self):
         """异步上下文管理器入口"""
@@ -37,6 +46,56 @@ class PoolMappingService:
         """异步上下文管理器退出"""
         # GeckoTerminalAsyncClient没有close方法，无需清理
         pass
+    
+    def _load_token_mapping(self, token_mapping_file: Optional[str] = None) -> Dict[str, str]:
+        """
+        加载CEX-DEX token名称映射配置
+        
+        Args:
+            token_mapping_file: 映射配置文件路径（相对于项目根目录）
+        
+        Returns:
+            映射字典 {CEX_TOKEN: DEX_TOKEN}
+        """
+        if token_mapping_file is None:
+            # 默认使用项目根目录下的配置文件
+            project_root = Path(__file__).parent.parent.parent
+            token_mapping_file = project_root / "config" / "token_mapping.yml"
+        else:
+            token_mapping_file = Path(token_mapping_file)
+        
+        if not token_mapping_file.exists():
+            logger.warning(f"Token mapping file not found: {token_mapping_file}, using empty mapping")
+            return {}
+        
+        try:
+            with open(token_mapping_file, 'r', encoding='utf-8') as f:
+                mapping = yaml.safe_load(f)
+                if mapping is None:
+                    return {}
+                if not isinstance(mapping, dict):
+                    logger.warning(f"Invalid token mapping format in {token_mapping_file}")
+                    return {}
+                logger.info(f"Loaded {len(mapping)} token mappings from {token_mapping_file}")
+                return mapping
+        except Exception as e:
+            logger.error(f"Failed to load token mapping from {token_mapping_file}: {e}")
+            return {}
+    
+    def get_dex_token_name(self, cex_token: str) -> str:
+        """
+        获取DEX上的token名称（处理wrapped tokens等）
+        
+        Args:
+            cex_token: CEX上的token符号（如 "IRON"）
+        
+        Returns:
+            DEX上的token符号（如 "wIRON"），如果没有映射则返回原token
+        """
+        dex_token = self.token_mapping.get(cex_token, cex_token)
+        if dex_token != cex_token:
+            logger.info(f"Token mapping: {cex_token} -> {dex_token}")
+        return dex_token
     
     def parse_trading_pairs_from_candles(
         self, 
@@ -87,7 +146,7 @@ class PoolMappingService:
         搜索特定代币的池子并返回top N个
         
         Args:
-            token_symbol: 代币符号（如AERO）
+            token_symbol: 代币符号（如AERO或IRON）
             network: 网络ID（如base）
             top_n: 返回池子数量
             
@@ -98,9 +157,12 @@ class PoolMappingService:
             self.gt_client = GeckoTerminalAsyncClient()
         
         try:
+            # 获取DEX上的token名称（处理wrapped tokens等）
+            dex_token = self.get_dex_token_name(token_symbol)
+            
             # 调用GeckoTerminal API (使用api_request直接调用endpoint)
             params = {
-                'query': token_symbol,
+                'query': dex_token,  # 使用映射后的DEX token名称搜索
                 'network': network,
                 'page': 1
             }
@@ -131,11 +193,12 @@ class PoolMappingService:
                     if pool_name:
                         # 提取base token（取第一个'/'前的部分，去除空格）
                         base_token_in_name = pool_name.split('/')[0].strip().upper()
-                        query_token_upper = token_symbol.upper()
+                        # 使用DEX token名称进行匹配（而非CEX token名称）
+                        dex_token_upper = dex_token.upper()
                         
                         # 如果base token不匹配，跳过这个池子
-                        if base_token_in_name != query_token_upper:
-                            logger.debug(f"Skipping pool '{pool_name}' - base token '{base_token_in_name}' != query '{query_token_upper}'")
+                        if base_token_in_name != dex_token_upper:
+                            logger.debug(f"Skipping pool '{pool_name}' - base token '{base_token_in_name}' != query '{dex_token_upper}' (CEX: {token_symbol})")
                             continue
                     
                     # 提取DEX ID

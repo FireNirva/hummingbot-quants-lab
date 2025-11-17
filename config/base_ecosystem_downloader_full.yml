@@ -26,28 +26,43 @@ tasks:
       # 交易所选择
       connector_name: "gate_io"
       
-      # 指定要下载的交易对
+      # 指定要下载的交易对（Base链生态代币）
+      # 更新于：2025-01-12，基于CoinGecko Base_Arb列表
       trading_pairs:
-        - "VIRTUAL-USDT"
-        - "BRETT-USDT"
-        - "AERO-USDT"
-        - "AIXBT-USDT"
-        - "FAI-USDT"
-        - "COOKIE-USDT"
-        - "MIGGLES-USDT"
-        - "ZORA-USDT"
-        - "EDGE-USDT"
-        - "BENJI-USDT"
-        - "GPS-USDT"
-        - "XSWAP-USDT"
-        - "LVLY-USDT"
-        - "HINT-USDT"
-        - "SKOP-USDT"
-        - "TALENT-USDT"
-        - "GMRT-USDT"
-        - "TRC-USDT"
-        - "ZAP-USDT"
-        - "AWS-USDT"
+        # 保留的高评分币种
+        - "IRON-USDT"      # 评分299.1 - 最佳套利机会
+        - "VIRTUAL-USDT"   # 评分233.6 - 机会最多
+        - "MIGGLES-USDT"   # 评分185.4 - 高频稳定
+        - "BENJI-USDT"     # 评分138.0 - 良好机会
+        - "AERO-USDT"      # 高流动性
+        
+        # 从CoinGecko Base_Arb列表新增的币种
+        - "BRETT-USDT"     # 原有，保留
+        - "SOSO-USDT"      # 新增
+        - "AWE-USDT"       # 新增
+        - "CLANKER-USDT"   # 新增 - tokenbot
+        - "DEGEN-USDT"     # 新增
+        - "AIXBT-USDT"     # 原有，保留
+        - "EDGE-USDT"      # 原有，保留
+        # - "AUKI-USDT"    # Gate.io不可交易，已移除
+        - "PRIME-USDT"     # 新增 - Echelon Prime
+        - "FAI-USDT"       # 原有，保留
+        - "FLOCK-USDT"     # 新增
+        - "BNKR-USDT"      # 新增 - BankrCoin
+        - "LMTS-USDT"      # 新增 - Limitless
+        - "PRO-USDT"       # 新增 - Propy
+        - "PAAL-USDT"      # 新增 - PAAL AI
+        # - "SERV-USDT"    # Gate.io不可交易，已移除
+        - "COMMON-USDT"    # 新增
+        # - "PING-USDT"    # Gate.io不可交易，已移除
+        - "PARTI-USDT"     # 新增 - Particle Network
+        # - "NOICE-USDT"   # Gate.io不可交易，已移除
+        - "PROMPT-USDT"    # 新增 - Wayfinder
+        # - "IXS-USDT"     # Gate.io不可交易，已移除
+        # - "BID-USDT"     # Gate.io不可交易，已移除
+        # - "HINT-USDT"    # Gate.io不可交易，已移除
+        - "UNITE-USDT"     # 原有，保留
+        - "TALENT-USDT"    # 原有，保留
       
       # 时间间隔 (Gate.io API限制: 1分钟最多约0.69天 = 1000点)
       intervals:

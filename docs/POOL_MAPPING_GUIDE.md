@@ -46,6 +46,38 @@ CEX-DEX池子映射系统自动将中心化交易所(CEX)的交易对映射到�
 
 ---
 
+## 🔧 Token 名称映射（重要！）
+
+### 问题场景
+
+某些 token 在 CEX 和 DEX 上使用不同的名称，导致无法找到对应的池子：
+
+| CEX Token | DEX Token | 原因 |
+|-----------|-----------|------|
+| **IRON** | **wIRON** | Wrapped version ⚠️ |
+| ETH | WETH | Wrapped Ether |
+| BTC | WBTC | Wrapped Bitcoin |
+
+### 解决方案
+
+编辑 `config/token_mapping.yml` 添加映射：
+
+```yaml
+# CEX-DEX Token 名称映射
+IRON: wIRON
+ETH: WETH
+BTC: WBTC
+```
+
+系统会自动：
+1. ✅ 读取映射配置
+2. ✅ 使用 DEX token 名称（wIRON）搜索
+3. ✅ 保持 CEX 名称（IRON-USDT）在结果中
+
+**详细文档**: [Token Mapping Guide](TOKEN_MAPPING_GUIDE.md)
+
+---
+
 ## 🚀 二、快速开始
 
 ### Phase 1: CLI脚本方式
@@ -55,6 +87,7 @@ CEX-DEX池子映射系统自动将中心化交易所(CEX)的交易对映射到�
 1. **Python环境**: quants-lab conda环境
 2. **依赖包**: geckoterminal_py已安装
 3. **数据**: 至少有一些CEX candles数据
+4. **Token映射** (可选): 如有 wrapped tokens，配置 `config/token_mapping.yml`
 
 #### 1. 基础用法
 

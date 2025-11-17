@@ -72,9 +72,17 @@ python scripts/analyze_cex_dex_spread.py \
 ### 2. 多交易对对比
 
 ```bash
-# 对比所有交易对的套利潜力
+# 对比所有交易对的套利潜力（从配置文件读取交易对列表）
 python scripts/analyze_cex_dex_spread.py --compare-all
+
+# 指定其他配置文件
+python scripts/analyze_cex_dex_spread.py --compare-all --config config/your_config.yml
 ```
+
+**说明**:
+- 默认从 `config/base_ecosystem_downloader_full.yml` 读取交易对列表
+- 自动跳过没有数据的交易对
+- 可通过 `--config` 参数指定其他配置文件
 
 **输出**:
 - 覆盖率对比

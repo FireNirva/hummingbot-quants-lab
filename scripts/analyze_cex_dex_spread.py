@@ -8,10 +8,10 @@ CEX-DEX 价差分析工具
 """
 import sys
 from pathlib import Path
-from datetime import datetime, timezone
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import yaml
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -25,7 +25,7 @@ from core.utils.dex_data_fill import (
 )
 
 
-def analyze_pair_spread(trading_pair: str, interval: str = "1m", volume_threshold: float = 100.0):
+def analyze_pair_spread(trading_pair: str, interval: str = "1m", volume_threshold: float = 100.0, connector: str = "gate_io", network: str = "base"):
     """
     分析单个交易对的 CEX-DEX 价差。
     
@@ -33,16 +33,19 @@ def analyze_pair_spread(trading_pair: str, interval: str = "1m", volume_threshol
         trading_pair: 交易对名称，如 "AERO-USDT"
         interval: 时间间隔
         volume_threshold: DEX 成交量阈值（用于可执行性过滤）
+        connector: CEX 连接器名称（如 "gate_io", "mexc"）
+        network: DEX 网络名称（如 "base"）
     """
     print("\n" + "="*80)
     print(f"📊 CEX-DEX 价差分析: {trading_pair} ({interval})")
+    print(f"   CEX: {connector} | DEX: {network}")
     print("="*80)
     print()
     
     # 1. 加载数据
     print("📁 加载数据...")
-    cex_file = data_paths.candles_dir / f"gate_io|{trading_pair}|{interval}.parquet"
-    dex_file = data_paths.candles_dir / f"geckoterminal_base|{trading_pair}|{interval}.parquet"
+    cex_file = data_paths.candles_dir / f"{connector}|{trading_pair}|{interval}.parquet"
+    dex_file = data_paths.candles_dir / f"geckoterminal_{network}|{trading_pair}|{interval}.parquet"
     
     if not cex_file.exists():
         print(f"❌ CEX 数据不存在: {cex_file.name}")
@@ -99,9 +102,9 @@ def analyze_pair_spread(trading_pair: str, interval: str = "1m", volume_threshol
     
     print("名义套利机会（价差 > 0.5%）:")
     print(f"  CEX→DEX: {arb_full['cex_to_dex']:,} 次 ({arb_full['cex_to_dex']/total_full*100:.2f}%)")
-    print(f"    → CEX 买入，DEX 卖出")
+    print("    → CEX 买入，DEX 卖出")
     print(f"  DEX→CEX: {arb_full['dex_to_cex']:,} 次 ({arb_full['dex_to_cex']/total_full*100:.2f}%)")
-    print(f"    → DEX 买入，CEX 卖出")
+    print("    → DEX 买入，CEX 卖出")
     print(f"  平衡区: {arb_full['neutral']:,} 次 ({arb_full['neutral']/total_full*100:.2f}%)")
     print()
     
@@ -206,21 +209,120 @@ def analyze_pair_spread(trading_pair: str, interval: str = "1m", volume_threshol
     return True
 
 
-def compare_multiple_pairs():
-    """对比多个交易对的套利潜力。"""
+def load_trading_pairs_from_config(config_file: str = "config/base_ecosystem_downloader_full.yml"):
+    """
+    从配置文件中加载交易对列表。
+    
+    Args:
+        config_file: 配置文件路径（相对于项目根目录）
+    
+    Returns:
+        交易对列表
+    """
+    config_path = project_root / config_file
+    
+    if not config_path.exists():
+        print(f"⚠️  配置文件不存在: {config_path}")
+        return []
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        # 从 YAML 中提取 trading_pairs
+        tasks = config.get('tasks', {})
+        for task_name, task_config in tasks.items():
+            task_data = task_config.get('config', {})
+            if 'trading_pairs' in task_data:
+                pairs = task_data['trading_pairs']
+                print(f"✅ 从配置文件加载了 {len(pairs)} 个交易对")
+                return pairs
+        
+        print("⚠️  配置文件中未找到 trading_pairs")
+        return []
+    
+    except Exception as e:
+        print(f"❌ 读取配置文件失败: {e}")
+        return []
+
+
+def get_volume_multiplier(volume: float) -> float:
+    """
+    成交量评分系数（倒U型曲线）
+    
+    太低和太高的成交量都会降低评分：
+    - < $100K: 无法套利，评分归零 ×0
+    - $100K - $500K: 流动性不足，评分×0.5-0.8
+    - $500K - $10M: 最佳区间，评分×1.0 ✅
+    - $10M - $50M: 竞争加剧，评分×0.8-0.5
+    - > $50M: 极度竞争，评分×0.3
+    
+    Args:
+        volume: 总成交量（USD）
+    
+    Returns:
+        评分系数 (0.0 - 1.0)
+    """
+    if volume < 100_000:
+        # 极低流动性：< $100K
+        # 无法套利，直接归零
+        return 0.0
+    
+    elif volume < 500_000:
+        # 低流动性：$100K - $500K
+        # 线性增加 0.5 → 0.8
+        return 0.5 + (volume - 100_000) / 400_000 * 0.3
+    
+    elif volume <= 10_000_000:
+        # 最佳区间：$500K - $10M
+        # 最高评分×1.0
+        return 1.0
+    
+    elif volume <= 50_000_000:
+        # 高流动性：$10M - $50M
+        # 线性降低 0.8 → 0.5
+        return 0.8 - (volume - 10_000_000) / 40_000_000 * 0.3
+    
+    else:
+        # 极高流动性：> $50M
+        # 竞争非常激烈，评分×0.3
+        return 0.3
+
+
+def compare_multiple_pairs(config_file: str = None, interval: str = "1m", connector: str = "gate_io", network: str = "base"):
+    """
+    对比多个交易对的套利潜力。
+    
+    Args:
+        config_file: 配置文件路径（可选），如不提供则使用默认配置
+        interval: 时间间隔（如 "1m", "5m"）
+        connector: CEX 连接器名称（如 "gate_io", "mexc"）
+        network: DEX 网络名称（如 "base"）
+    """
     print("\n" + "="*80)
-    print("📊 多交易对套利潜力对比")
+    print(f"📊 多交易对套利潜力对比 ({interval})")
+    print(f"   CEX: {connector} | DEX: {network}")
     print("="*80)
     print()
     
-    pairs = ["AERO-USDT", "VIRTUAL-USDT", "BRETT-USDT", "GPS-USDT"]
-    interval = "1m"
+    # 从配置文件加载交易对
+    if config_file:
+        pairs = load_trading_pairs_from_config(config_file)
+    else:
+        pairs = load_trading_pairs_from_config()
+    
+    if not pairs:
+        print("❌ 未找到交易对列表，使用默认列表")
+        pairs = ["AERO-USDT", "VIRTUAL-USDT", "BRETT-USDT", "GPS-USDT"]
+    
+    print(f"📋 将分析 {len(pairs)} 个交易对 (时间间隔: {interval})")
+    print()
     
     results = []
     
     for pair in pairs:
-        cex_file = data_paths.candles_dir / f"gate_io|{pair}|{interval}.parquet"
-        dex_file = data_paths.candles_dir / f"geckoterminal_base|{pair}|{interval}.parquet"
+        cex_file = data_paths.candles_dir / f"{connector}|{pair}|{interval}.parquet"
+        dex_file = data_paths.candles_dir / f"geckoterminal_{network}|{pair}|{interval}.parquet"
         
         if not cex_file.exists() or not dex_file.exists():
             continue
@@ -242,32 +344,137 @@ def compare_multiple_pairs():
             'total_volume': real_trades['dex_volume'].sum()
         })
     
+    # 检查是否有有效结果
+    if not results:
+        print("❌ 错误：没有找到任何有效的交易对数据")
+        print()
+        print("可能的原因：")
+        print("  1. DEX 数据还未下载")
+        print("  2. CEX 数据文件命名格式不匹配")
+        print("  3. 交易对配置有误")
+        print()
+        print("📋 预期文件格式：")
+        print(f"   CEX: {connector}|PAIR-USDT|{interval}.parquet")
+        print(f"   DEX: geckoterminal_{network}|PAIR-USDT|{interval}.parquet")
+        return
+    
     # 显示对比表格
     df_results = pd.DataFrame(results)
     
     print("交易对对比:")
     print("-"*80)
     for _, row in df_results.iterrows():
+        # 处理 NaN 值
+        dex_coverage = row['dex_coverage'] if not pd.isna(row['dex_coverage']) else 0
+        avg_spread = row['avg_spread'] if not pd.isna(row['avg_spread']) else 0
+        executable_ops = row['executable_ops'] if not pd.isna(row['executable_ops']) else 0
+        total_volume = row['total_volume'] if not pd.isna(row['total_volume']) else 0
+        
+        # 如果价差为 0 或 NaN，显示为 "N/A"
+        if pd.isna(row['avg_spread']) or row['avg_spread'] == 0:
+            spread_str = "   N/A"
+        else:
+            spread_str = f"{avg_spread:5.2f}%"
+        
         print(f"{row['pair']:15s} | "
-              f"覆盖率: {row['dex_coverage']:5.1f}% | "
-              f"平均价差: {row['avg_spread']:5.2f}% | "
-              f"可执行机会: {row['executable_ops']:5.0f} 次 | "
-              f"总成交量: ${row['total_volume']:,.0f}")
+              f"覆盖率: {dex_coverage:5.1f}% | "
+              f"平均价差: {spread_str} | "
+              f"可执行机会: {executable_ops:5.0f} 次 | "
+              f"总成交量: ${total_volume:,.0f}")
     print()
     
-    # 推荐排序
-    print("💡 推荐排序（综合评分）:")
-    df_results['score'] = (
-        df_results['dex_coverage'] * 0.3 +
-        df_results['avg_spread'] * 10 +
-        df_results['executable_ops'] / 10
+    # 推荐排序（最终优化版 + 成交量阈值）
+    print("💡 推荐排序（综合评分 - 最终优化版 V4）:")
+    print("   核心理念: 抓住本质 + 成交量倒U型优化")
+    print("   评分公式: score = (价差×10 + 机会数/10) × 成交量系数")
+    print()
+    print("   🎯 核心要素:")
+    print("      1. 价差 → 决定每次能赚多少（最重要！）")
+    print("      2. 机会数 → 决定能赚多少次（很重要！）")
+    print("      3. 成交量系数 → 倒U型曲线（太低或太高都降低排名）")
+    print()
+    print("   📊 成交量阈值:")
+    print("      • < $100K:       评分×0 ❌ （无法套利，直接归零）")
+    print("      • $100K - $500K: 评分×0.5-0.8 （低流动性）")
+    print("      • $500K - $10M:  评分×1.0 ✅ （最佳区间）")
+    print("      • $10M - $50M:   评分×0.8-0.5 （竞争加剧）")
+    print("      • > $50M:        评分×0.3 （极度竞争）")
+    print()
+    
+    # 最终优化的评分公式 V4：添加成交量阈值
+    # score = (价差 × 10 + 机会数 / 10) × volume_multiplier
+    # 
+    # 成交量系数：倒U型曲线
+    # - 太低（<$100K）：流动性不足，惩罚×0.3
+    # - 适中（$500K-$10M）：最佳区间，保持×1.0
+    # - 太高（>$50M）：竞争激烈，惩罚×0.3
+    
+    # 计算成交量系数
+    df_results['volume_multiplier'] = df_results['total_volume'].apply(get_volume_multiplier)
+    
+    # 基础评分
+    df_results['base_score'] = (
+        df_results['avg_spread'] * 10 +      # 价差：决定盈利空间
+        df_results['executable_ops'] / 10     # 机会数：决定交易频次
     )
     
+    # 最终评分 = 基础评分 × 成交量系数
+    df_results['score'] = df_results['base_score'] * df_results['volume_multiplier']
+    
+    # 处理 NaN 值：如果评分或其他字段为 NaN（通常因为数据不足），设置为 0
+    df_results = df_results.fillna({
+        'avg_spread': 0,
+        'executable_ops': 0,
+        'base_score': 0,
+        'volume_multiplier': 0,
+        'score': 0
+    })
+    
     df_sorted = df_results.sort_values('score', ascending=False)
+    
     for i, (_, row) in enumerate(df_sorted.iterrows(), 1):
-        rating = "⭐" * min(5, int(row['score'] / 20))
-        print(f"  {i}. {row['pair']:15s} {rating} (评分: {row['score']:.1f})")
+        # 评分区间调整为更合理的刻度
+        # 处理 NaN 或无穷大的情况
+        score_val = row['score'] if not pd.isna(row['score']) and not np.isinf(row['score']) else 0
+        rating = "⭐" * min(5, int(score_val / 10))
+        
+        # 添加流动性警告（仅提示，不影响评分）
+        warnings = []
+        if row['total_volume'] < 100_000:  # <$100K
+            warnings.append("❌无法套利")
+        if row['dex_coverage'] < 1.0:  # <1%
+            warnings.append("⚠️极低覆盖")
+        if pd.isna(row['avg_spread']) or row['avg_spread'] == 0:
+            warnings.append("⚠️数据不足")
+        warning_str = f" {' '.join(warnings)}" if warnings else ""
+        
+        print(f"  {i:2d}. {row['pair']:15s} {rating:10s} (评分: {score_val:6.1f}){warning_str}")
+    
     print()
+    
+    # 显示评分组成明细（前 5 名）
+    print("🔍 评分明细（前 5 名）:")
+    print("-"*80)
+    for i, (_, row) in enumerate(df_sorted.head(5).iterrows(), 1):
+        # 处理可能的 NaN 值
+        avg_spread = row['avg_spread'] if not pd.isna(row['avg_spread']) else 0
+        executable_ops = row['executable_ops'] if not pd.isna(row['executable_ops']) else 0
+        base_score = row['base_score'] if not pd.isna(row['base_score']) else 0
+        volume_mult = row['volume_multiplier'] if not pd.isna(row['volume_multiplier']) else 0
+        final_score = row['score'] if not pd.isna(row['score']) else 0
+        dex_coverage = row['dex_coverage'] if not pd.isna(row['dex_coverage']) else 0
+        
+        spread_contrib = avg_spread * 10
+        ops_contrib = executable_ops / 10
+        
+        print(f"{i}. {row['pair']}")
+        print(f"   价差贡献: {spread_contrib:6.1f}分 (avg_spread={avg_spread:.2f}%)")
+        print(f"   机会贡献: {ops_contrib:6.1f}分 (executable_ops={executable_ops:.0f}次)")
+        print(f"   基础评分: {base_score:6.1f}分")
+        print(f"   成交量系数: {volume_mult:.2f}x (volume=${row['total_volume']:,.0f})")
+        print(f"   最终评分: {final_score:6.1f}分 = {base_score:.1f} × {volume_mult:.2f}")
+        print(f"   覆盖率: {dex_coverage:.1f}%")
+        print()
 
 
 def main():
@@ -280,13 +487,22 @@ def main():
     parser.add_argument('--volume-threshold', type=float, default=100.0, 
                        help='DEX 成交量阈值（USD）')
     parser.add_argument('--compare-all', action='store_true', help='对比所有交易对')
+    parser.add_argument('--config', type=str, 
+                       default='config/base_ecosystem_downloader_full.yml',
+                       help='配置文件路径（用于 --compare-all）')
+    parser.add_argument('--connector', type=str, default='gate_io',
+                       help='CEX 连接器名称（如 gate_io, mexc）')
+    parser.add_argument('--network', type=str, default='base',
+                       help='DEX 网络名称（如 base）')
     
     args = parser.parse_args()
     
     if args.compare_all:
-        compare_multiple_pairs()
+        compare_multiple_pairs(config_file=args.config, interval=args.interval, 
+                              connector=args.connector, network=args.network)
     else:
-        success = analyze_pair_spread(args.pair, args.interval, args.volume_threshold)
+        success = analyze_pair_spread(args.pair, args.interval, args.volume_threshold,
+                                     connector=args.connector, network=args.network)
         
         if not success:
             return 1

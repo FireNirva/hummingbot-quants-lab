@@ -34,11 +34,12 @@ logger = logging.getLogger(__name__)
 class FreqtradeDataImporter:
     """Import historical data from Freqtrade to QuantsLab format."""
     
-    def __init__(self, config_path: str, days: int, timeframe: str = "1m", prepend: bool = False, exchange: str = None):
+    def __init__(self, config_path: str, days: int, timeframe: str = "1m", prepend: bool = False, erase: bool = False, exchange: str = None):
         self.config_path = config_path
         self.days = days
         self.timeframe = timeframe
         self.prepend = prepend  # Prepend historical data to existing data
+        self.erase = erase  # Erase existing data and redownload
         
         # Paths
         self.project_root = Path.cwd()
@@ -85,10 +86,12 @@ class FreqtradeDataImporter:
             # Get exchange from config or command line
             if self._exchange_override:
                 self.exchange = self._exchange_override
+                self.connector_name = self.exchange  # Use exchange name as connector
                 logger.info(f"Using exchange from command line: {self.exchange}")
             else:
                 # Get connector_name from config (e.g., "gate_io")
                 connector_name = task_config.get('connector_name', 'gate_io')
+                self.connector_name = connector_name  # Store connector name
                 # Convert to Freqtrade format: gate_io -> gateio
                 self.exchange = connector_name.replace('_', '')
                 logger.info(f"Using exchange from config: {self.exchange} (connector: {connector_name})")
@@ -159,8 +162,12 @@ class FreqtradeDataImporter:
             "--days", str(self.days)
         ]
         
+        # Add --erase flag if requested (higher priority than --prepend)
+        if self.erase:
+            cmd.append("--erase")
+            logger.info("🔄 --erase flag enabled: Will delete and redownload all data")
         # Add --prepend flag if requested
-        if self.prepend:
+        elif self.prepend:
             cmd.append("--prepend")
             logger.info("📥 --prepend flag enabled: Will add historical data before existing data")
         
@@ -169,9 +176,9 @@ class FreqtradeDataImporter:
         logger.info(f"Command: {' '.join(cmd)}")
         
         try:
-            # Run in freqtrade conda environment
+            # Run freqtrade directly (assumes user is in correct environment)
             result = subprocess.run(
-                ["conda", "run", "-n", "freqtrade"] + cmd,
+                cmd,
                 capture_output=True,
                 text=True,
                 check=False  # Don't raise on non-zero exit
@@ -217,8 +224,8 @@ class FreqtradeDataImporter:
         freqtrade_filename = f"{pair.replace('-', '_')}-{self.timeframe}.feather"
         freqtrade_path = self.freqtrade_data_dir / freqtrade_filename
         
-        # QuantsLab file naming: gate_io|BTC-USDT|1m.parquet
-        quantslab_filename = f"gate_io|{pair}|{self.timeframe}.parquet"
+        # QuantsLab file naming: connector|BTC-USDT|1m.parquet
+        quantslab_filename = f"{self.connector_name}|{pair}|{self.timeframe}.parquet"
         quantslab_path = self.quantslab_candles_dir / quantslab_filename
         
         if not freqtrade_path.exists():
@@ -504,6 +511,12 @@ Examples:
     )
     
     parser.add_argument(
+        '--erase',
+        action='store_true',
+        help='Erase existing data and redownload (force fresh download, default: False)'
+    )
+    
+    parser.add_argument(
         '--exchange',
         default=None,
         help='Exchange name (overrides config file, e.g., gateio, binance)'
@@ -522,6 +535,7 @@ Examples:
         days=args.days,
         timeframe=args.timeframe,
         prepend=args.prepend,
+        erase=args.erase,
         exchange=args.exchange
     )
     
