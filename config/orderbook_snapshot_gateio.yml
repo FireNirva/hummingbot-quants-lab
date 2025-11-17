@@ -1,0 +1,48 @@
+# Gate.io 订单簿快照采集配置
+# 用途：定期采集 Gate.io 订单簿数据，用于精确滑点计算和回测
+#
+# 使用方法：
+# 1. 单次运行: python cli.py trigger-task --task orderbook_snapshot --config orderbook_snapshot_gateio.yml
+# 2. 持续运行: python cli.py run-tasks --config orderbook_snapshot_gateio.yml
+
+tasks:
+  orderbook_snapshot_gateio:
+    enabled: true
+    task_class: app.tasks.data_collection.orderbook_snapshot_task.OrderBookSnapshotTask
+    
+    # 调度配置：每5秒运行一次（高频交易模式）
+    schedule:
+      type: frequency
+      frequency_hours: 0.001389  # 5秒 = 5/3600 小时（秒级高频交易）
+      timezone: UTC
+    
+    # 重试配置
+    max_retries: 3
+    retry_delay_seconds: 30
+    timeout_seconds: 300  # 5分钟超时
+    
+    # 任务特定配置
+    config:
+      # 交易所选择
+      connector_name: "gate_io"
+      
+      # 指定要采集的交易对（用户指定的 6 个交易对）
+      trading_pairs:
+        - "VIRTUAL-USDT"
+        - "LMTS-USDT"
+        - "BNKR-USDT"
+        - "PRO-USDT"
+        - "IRON-USDT"
+        - "MIGGLES-USDT"
+      
+      # 订单簿深度（档位数）
+      # 100 档足够计算精确滑点（如需更多可设置为 500）
+      depth_limit: 100
+    
+    # 标签（用于分类和筛选）
+    tags:
+      - data_collection
+      - orderbook
+      - gate_io
+      - base_ecosystem
+
