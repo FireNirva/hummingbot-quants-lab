@@ -4,7 +4,6 @@ channels:
   - defaults
 dependencies:
   - python=3.12
-  - pandas-ta==0.3.14b
   - sqlalchemy
   - libcxx
   - pip
@@ -26,7 +25,6 @@ dependencies:
       - optuna
       - optuna-dashboard
       - pathlib
-      - streamlit
       - pre-commit
       - isort
       - flake8
