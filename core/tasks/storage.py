@@ -70,6 +70,45 @@ class TaskStorage(ABC):
         pass
 
 
+class NoOpTaskStorage(TaskStorage):
+    """No-operation task storage for tasks that don't need persistence."""
+    
+    async def initialize(self) -> None:
+        """Initialize (no-op)."""
+        logger.info("Using NoOpTaskStorage - task execution history will not be persisted")
+    
+    async def close(self) -> None:
+        """Close (no-op)."""
+        pass
+    
+    async def save_execution(self, result: TaskResult, context: TaskContext) -> None:
+        """Save execution (no-op)."""
+        pass
+    
+    async def get_last_execution(self, task_name: str) -> Optional[TaskExecutionRecord]:
+        """Get last execution (always returns None)."""
+        return None
+    
+    async def get_executions(
+        self,
+        task_name: Optional[str] = None,
+        status: Optional[TaskStatus] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: int = 100
+    ) -> List[TaskExecutionRecord]:
+        """Get executions (always returns empty list)."""
+        return []
+    
+    async def mark_task_running(self, task_name: str, execution_id: str) -> bool:
+        """Mark task as running (always succeeds in no-op mode)."""
+        return True
+    
+    async def mark_task_completed(self, task_name: str) -> None:
+        """Mark task as completed (no-op)."""
+        pass
+
+
 class MongoDBTaskStorage(TaskStorage):
     """MongoDB implementation of task storage."""
     

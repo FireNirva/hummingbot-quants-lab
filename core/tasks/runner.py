@@ -81,9 +81,6 @@ class TaskRunner:
         logger.info(f"MONGO_URI: {'Configured' if mongo_uri else 'Not configured'}")
         logger.info(f"MONGO_DATABASE: {mongo_database}")
         logger.info("=================================")
-        
-        if not mongo_uri:
-            logger.warning("MONGO_URI not set in environment. Storage will not be available.")
     
     def _create_task_config(self, task_name: str, task_data: Dict[str, Any]) -> TaskConfig:
         """Create TaskConfig from configuration data."""
@@ -193,11 +190,19 @@ class TaskRunner:
         logger.info("Starting QuantsLab Task Runner v2.0")
         
         try:
-            # Check MongoDB configuration
-            self._check_mongodb_configured()
+            # Check MongoDB configuration and decide storage type
+            mongo_uri = os.getenv("MONGO_URI")
             
-            # Initialize storage (no config needed, uses db_manager)
-            storage = MongoDBTaskStorage()
+            if mongo_uri:
+                # Use MongoDB storage if configured
+                self._check_mongodb_configured()
+                storage = MongoDBTaskStorage()
+                logger.info("Using MongoDB for task execution history")
+            else:
+                # Use NoOp storage if MongoDB not configured
+                from core.tasks.storage import NoOpTaskStorage
+                storage = NoOpTaskStorage()
+                logger.info("MongoDB not configured - using NoOpTaskStorage")
             
             # Create orchestrator
             max_concurrent = self.config.get("max_concurrent_tasks", 10)
