@@ -168,3 +168,4 @@ outputs/
 # Downloaded market data and cache files
 user_data/
 app/data/
+.env.backup
