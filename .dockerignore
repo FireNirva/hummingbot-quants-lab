@@ -54,6 +54,7 @@ htmlcov/
 # Output directories (will be mounted)
 app/outputs/
 app/data/
+app/__pycache__/
 
 # Configuration and secrets (will be mounted or passed via env)
 config/
@@ -83,8 +84,9 @@ Thumbs.db
 # Research notebooks (will be mounted)
 research_notebooks/
 
-# App directory (will be mounted)
-app/
+# App directory - REMOVED from ignore so app/tasks can be copied to image
+# Only app/outputs and app/data are ignored (they will be mounted)
+# app/
 
 # Log files
 *.log

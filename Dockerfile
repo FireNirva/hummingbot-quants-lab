@@ -21,9 +21,10 @@ RUN conda env create -f environment.yml && \
 # Make RUN commands use the new environment
 SHELL ["conda", "run", "-n", "quants-lab", "/bin/bash", "-c"]
 
-# Copy the core framework and CLI (these change more frequently)
+# Copy the core framework, app, and CLI (these change more frequently)
 # This layer will rebuild when code changes, but dependencies remain cached
 COPY core/ core/
+COPY app/ app/
 COPY cli.py .
 
 # Create outputs directory under app/

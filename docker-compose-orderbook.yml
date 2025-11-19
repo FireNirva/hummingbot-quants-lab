@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # 订单簿数据采集服务
+  orderbook-gateio:
+    image: hummingbot/quants-lab
+    container_name: quants-lab-orderbook-gateio
+    command: conda run --no-capture-output -n quants-lab python3 cli.py run-tasks --config config/orderbook_snapshot_gateio.yml
+    
+    volumes:
+      # 日志目录（重要：持久化日志）
+      - ./logs:/quants-lab/logs
+      # 数据目录
+      - ./app/data:/quants-lab/app/data
+      - ./app/outputs:/quants-lab/app/outputs
+      # 配置文件
+      - ./config:/quants-lab/config
+    
+    env_file:
+      - .env
+    
+    # 自动重启策略
+    restart: unless-stopped
+    
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; import time; files = os.listdir('app/data/raw/orderbook_snapshots'); latest = max([os.path.getmtime(f'app/data/raw/orderbook_snapshots/{f}') for f in files if f.endswith('.parquet')], default=0); exit(0 if time.time() - latest < 120 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # 资源限制（可选，根据需要调整）
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # 依赖
+    depends_on:
+      - mongodb
+  
+  # MEXC 订单簿采集（如果需要）
+  orderbook-mexc:
+    image: hummingbot/quants-lab
+    container_name: quants-lab-orderbook-mexc
+    command: conda run --no-capture-output -n quants-lab python3 cli.py run-tasks --config config/orderbook_snapshot_mexc.yml
+    
+    volumes:
+      - ./logs:/quants-lab/logs
+      - ./app/data:/quants-lab/app/data
+      - ./app/outputs:/quants-lab/app/outputs
+      - ./config:/quants-lab/config
+    
+    env_file:
+      - .env
+    
+    restart: unless-stopped
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; import time; files = os.listdir('app/data/raw/orderbook_snapshots'); latest = max([os.path.getmtime(f'app/data/raw/orderbook_snapshots/{f}') for f in files if f.endswith('.parquet') and 'mexc' in f], default=0); exit(0 if time.time() - latest < 120 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    depends_on:
+      - mongodb
+    
+    # 默认不启动（根据需要启动）
+    profiles:
+      - mexc
+  
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    
+    ports:
+      - "27017:27017"
+    
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    
+    volumes:
+      - mongodb_data:/data/db
+    
+    restart: unless-stopped
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+  
+  # MongoDB 管理界面（可选）
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    
+    ports:
+      - "28081:8081"
+    
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    
+    restart: unless-stopped
+    
+    depends_on:
+      - mongodb
+    
+    # 默认不启动（根据需要启动）
+    profiles:
+      - admin
+
+volumes:
+  mongodb_data:
+    name: quants-lab-mongodb-data
+
+networks:
+  default:
+    name: quants-lab-network
+

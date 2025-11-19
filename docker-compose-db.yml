@@ -17,6 +17,7 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongodb
+    command: --bind_ip_all
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin

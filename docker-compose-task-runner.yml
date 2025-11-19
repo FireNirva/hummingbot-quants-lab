@@ -13,7 +13,7 @@ services:
       - .env
     networks:
       - quants_app_net # Connect to the pre-defined external network
-    command: conda run --no-capture-output -n quants-lab python3 run_tasks.py --config ${TASK_CONFIG:-config/tasks.yml}
+    command: conda run --no-capture-output -n quants-lab python cli.py run-tasks --config ${TASK_CONFIG:-config/orderbook_snapshot_gateio.yml}
     deploy:
       restart_policy:
         condition: on-failure
