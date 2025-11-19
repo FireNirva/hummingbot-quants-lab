@@ -27,10 +27,11 @@ tasks:
       connector_name: "mexc"
       
       # 指定要采集的交易对（用户指定的 3 个交易对）
+      # ⚠️  MEXC 使用无连字符格式：AUKIUSDT (不是 AUKI-USDT)
       trading_pairs:
-        - "AUKI-USDT"
-        - "SERV-USDT"
-        - "IRON-USDT"
+        - "AUKIUSDT"
+        - "SERVUSDT"
+        - "IRONUSDT"
       
       # 订单簿深度（档位数）
       # 100 档足够计算精确滑点（如需更多可设置为 500）
