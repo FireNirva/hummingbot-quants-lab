@@ -114,6 +114,21 @@ docs/
 ➡️ [CEX-DEX池子映射指南](./POOL_MAPPING_GUIDE.md) 🆕  
 ➡️ 自动查找高流动性DEX池子，支持CLI和任务系统
 
+#### 了解 MongoDB 在项目中的作用
+➡️ [MongoDB 作用详解](./MONGODB_ROLE_EXPLAINED.md) ✨ 新文档  
+➡️ 存储任务历史、池子结果、调度信息  
+➡️ 为什么用 MongoDB？与 Parquet 如何分工？
+
+#### 本地开发时不想启动 MongoDB
+➡️ [无 MongoDB 模式运行指南](./NO_MONGODB_MODE.md) ✨ 新功能  
+➡️ 订单簿采集等任务可以不依赖数据库运行  
+➡️ 适合本地开发和快速迭代
+
+#### Docker 容器突然停止，如何排查错误
+➡️ [Docker 日志记录与错误排查](./DOCKER_LOGGING_AND_DEBUGGING.md) 🔧 新系统  
+➡️ 完整的错误排查流程和工具  
+➡️ 健康检查脚本、自动监控重启、Docker Compose配置
+
 ---
 
 ## 📝 配置文件示例
