@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package spot;
+
+option java_package = "com.mexc.api.spot.model.ws.pb";
+option java_outer_classname = "PushDataV3ApiWrapperProto";
+
+// 公共深度增量推送
+message PublicIncreaseDepths {
+    message PriceLevel {
+        string price = 1;
+        string quantity = 2;
+    }
+    
+    repeated PriceLevel asks = 1;
+    repeated PriceLevel bids = 2;
+    string eventtype = 3;
+    string fromVersion = 4;
+    string toVersion = 5;
+}
+
+// 推送数据包装器
+message PushDataV3ApiWrapper {
+    string channel = 1;
+    string symbol = 2;
+    int64 sendTime = 3;
+    PublicIncreaseDepths publicIncreaseDepths = 4;
+}

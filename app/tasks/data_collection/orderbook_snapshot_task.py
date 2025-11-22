@@ -360,8 +360,18 @@ class OrderBookSnapshotTask(BaseTask):
             
             # 追加模式：如果文件已存在，读取并合并
             if filepath.exists():
-                df_existing = pd.read_parquet(filepath)
-                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                try:
+                    df_existing = pd.read_parquet(filepath)
+                    df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                except Exception as read_error:
+                    # 文件损坏，备份并重新开始
+                    logger.warning(f"⚠️ Corrupted parquet file detected: {filepath}")
+                    logger.warning(f"   Error: {read_error}")
+                    backup_path = filepath.with_suffix('.parquet.corrupted')
+                    logger.warning(f"   Backing up to: {backup_path}")
+                    filepath.rename(backup_path)
+                    logger.info(f"   Starting fresh with new file")
+                    df_combined = df_new
             else:
                 df_combined = df_new
             

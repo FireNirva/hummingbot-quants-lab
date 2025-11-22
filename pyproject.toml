@@ -42,6 +42,7 @@ dependencies = [
     "croniter",
     "pytz",
     "sqlalchemy",
+    "websockets>=12.0",
 ]
 
 [project.optional-dependencies]

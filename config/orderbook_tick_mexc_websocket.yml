@@ -1,0 +1,110 @@
+# MEXC WebSocket Tick-Level Orderbook Collection Configuration
+#
+# 📊 MEXC WebSocket + Protobuf 模式
+#
+# 特点：
+# - WebSocket 实时流 (100ms 延迟)
+# - Protocol Buffers 二进制格式
+# - 增量更新 (diff mode)
+# - 超高频率数据采集
+#
+# 技术对比：
+# ┌──────────────┬────────────┬──────────┬────────────┐
+# │ Exchange     │ Protocol   │ Format   │ Frequency  │
+# ├──────────────┼────────────┼──────────┼────────────┤
+# │ Gate.io      │ WebSocket  │ JSON     │ Real-time  │
+# │ MEXC         │ WebSocket  │ Protobuf │ Real-time  │
+# │ MEXC (REST)  │ HTTP       │ JSON     │ 10s        │
+# └──────────────┴────────────┴──────────┴────────────┘
+#
+# 使用方法：
+#   python cli.py run-tasks --config config/orderbook_tick_mexc_websocket.yml
+#
+# 数据存储位置：
+#   app/data/raw/orderbook_ticks/mexc_{SYMBOL}_{YYYYMMDD}/
+#
+# 前置要求：
+#   - protobuf 已安装 (conda install protobuf)
+#   - proto 文件已编译 (core/data_sources/mexc_proto/)
+
+tasks:
+  orderbook_tick_mexc:
+    enabled: true
+    task_class: app.tasks.data_collection.orderbook_tick_collector.OrderBookTickCollector
+    
+    schedule:
+      # Long-running streaming task (WebSocket 长连接)
+      # WebSocket maintains persistent connection inside execute()
+      # Set long frequency so task runs for extended periods
+      type: frequency
+      frequency_hours: 24  # Task runs for 24 hours before restart
+      timezone: UTC
+    
+    # 重试配置
+    # Task will auto-restart on connection failures
+    max_retries: 999
+    retry_delay_seconds: 30
+    
+    # 任务特定配置
+    config:
+      # 交易所选择
+      connector_name: "mexc"
+      
+      # 指定要采集的交易对
+      # MEXC 使用无连字符格式：AUKIUSDT (不是 AUKI-USDT)
+      trading_pairs:
+        - "AUKIUSDT"
+        - "SERVUSDT"
+        - "IRONUSDT"
+        - "VIRTUALUSDT"
+        - "LMTSUSDT"
+        - "BNKRUSDT"
+      
+      # 写入配置
+      # 💡 tick 数据量大，使用较大缓冲区和较短刷新间隔
+      buffer_size: 1000        # 每1000条tick写入一次
+      flush_interval: 60       # 或每60秒强制刷新
+      
+      # 数据存储路径（相对于项目根目录）
+      output_dir: "app/data/raw/orderbook_ticks"
+      
+      # Sequence gap监控
+      # MEXC WebSocket在活跃交易对上可能有小的gap（服务器端合并）
+      # 只对大gap发出警告
+      gap_warning_threshold: 50  # 只警告大于50的gap
+    
+    # 任务标签
+    tags:
+      - data_collection
+      - orderbook_tick
+      - mexc
+      - websocket_mode
+      - protobuf
+      - real_time
+      - base_ecosystem
+
+# 📝 使用说明
+#
+# 1. 启动采集：
+#    python cli.py run-tasks --config config/orderbook_tick_mexc_websocket.yml
+#
+# 2. 查看数据：
+#    import pyarrow.parquet as pq
+#    df = pq.read_table('app/data/raw/orderbook_ticks/mexc_AUKIUSDT_20251119').to_pandas()
+#
+# 3. 数据格式：
+#    - Long-table：每行一个价格level的变化
+#    - snapshot_flag: False = diff更新
+#    - update_id: MEXC的version号
+#
+# 4. 性能优化：
+#    - 多文件追加模式避免rewrite
+#    - 智能缓冲减少I/O
+#    - Protobuf二进制格式更高效
+#
+# 5. 监控指标：
+#    - 连接状态
+#    - 接收速率
+#    - Sequence gaps
+#    - 缓冲区使用率
+

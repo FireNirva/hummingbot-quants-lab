@@ -1,0 +1,80 @@
+# Gate.io Tick-Level Orderbook Collection Configuration
+#
+# This configuration defines a long-running WebSocket streaming task
+# for collecting tick-level orderbook updates from Gate.io.
+#
+# Key features:
+# - WebSocket-based real-time updates (100ms frequency)
+# - Periodic REST snapshots as checkpoints (every 5 minutes)
+# - Long-table format: one row per price level change
+# - Buffered writing with automatic flush to parquet
+# - Sequence number tracking for gap detection
+#
+# Usage:
+#   python cli.py run-tasks --config config/orderbook_tick_gateio.yml
+#
+# Monitoring:
+#   python scripts/test_tick_collection.py VIRTUAL-USDT --duration 60
+#
+# Data location:
+#   app/data/raw/orderbook_ticks/gate_io_{SYMBOL}_{YYYYMMDD}/part_xxxxx.parquet
+
+tasks:
+  orderbook_tick_gateio:
+    enabled: true
+    task_class: app.tasks.data_collection.orderbook_tick_collector.OrderBookTickCollector
+    
+    schedule:
+      # Long-running streaming task
+      # WebSocket maintains persistent connection inside execute()
+      # Set very long frequency so task runs for extended periods
+      type: frequency
+      frequency_hours: 24  # Task runs for 24 hours before restart
+      timezone: UTC
+    
+    # Retry configuration
+    # Task will auto-restart on connection failures
+    max_retries: 999
+    retry_delay_seconds: 30
+    
+    # Task-specific configuration
+    config:
+      # Exchange connector name
+      connector_name: "gate_io"
+      
+      # Trading pairs to collect
+      # Use QuantsLab format with hyphen: SYMBOL-USDT
+      trading_pairs:
+        - "VIRTUAL-USDT"
+        - "LMTS-USDT"
+        - "BNKR-USDT"
+        - "PRO-USDT"
+        - "IRON-USDT"
+        - "MIGGLES-USDT"
+      
+      # Orderbook depth (number of price levels)
+      depth_limit: 100
+      
+      # Snapshot checkpoint interval (seconds)
+      # Fetches full REST snapshot every N seconds as checkpoint
+      # Recommended: 300 (5 minutes)
+      snapshot_interval: 300
+      
+      # Buffer settings for parquet writer
+      # Flush trigger: whichever comes first
+      buffer_size: 100        # Number of ticks before auto-flush
+      flush_interval: 10.0    # Seconds before auto-flush
+      
+      # Sequence gap monitoring
+      # Small gaps (1-50) are normal for active pairs due to WebSocket merging
+      # Only warn for gaps larger than this threshold
+      gap_warning_threshold: 50  # Warn only for gaps > 50 (default: 50)
+    
+    # Task tags for filtering and monitoring
+    tags:
+      - data_collection
+      - orderbook_tick
+      - gate_io
+      - websocket
+      - high_frequency
+
