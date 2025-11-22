@@ -169,3 +169,14 @@ outputs/
 user_data/
 app/data/
 .env.backup
+
+# Temporary files and backups
+*.backup
+*.bak
+.DS_Store
+
+# Temporary debug docs (keep important docs in docs/)
+docs/*DEBUG*.md
+docs/*FIX*.md  
+docs/*AUDIT*.md
+docs/*NO_DATA*.md
