@@ -1,0 +1,16 @@
+# Grafana Dashboard 自动加载配置
+apiVersion: 1
+
+providers:
+  # Orderbook 监控 Dashboards
+  - name: 'Orderbook Collection'
+    orgId: 1
+    folder: 'Orderbook Monitoring'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false
+

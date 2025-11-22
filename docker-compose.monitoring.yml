@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # Prometheus 时序数据库
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: quants-lab-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus_multiport.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    labels:
+      com.quants-lab.service: "prometheus"
+      com.quants-lab.description: "Time-series database for metrics"
+
+  # Grafana 可视化平台
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: quants-lab-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # 安全配置
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123  # 生产环境请修改！
+      - GF_USERS_ALLOW_SIGN_UP=false
+      
+      # 基础配置
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=redis-datasource
+      
+      # 匿名访问（可选）
+      # - GF_AUTH_ANONYMOUS_ENABLED=true
+      # - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+    labels:
+      com.quants-lab.service: "grafana"
+      com.quants-lab.description: "Metrics visualization and dashboards"
+
+  # Alertmanager 告警管理（可选）
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: quants-lab-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - monitoring
+    labels:
+      com.quants-lab.service: "alertmanager"
+      com.quants-lab.description: "Alert routing and notification"
+
+  # Node Exporter 系统指标（可选）
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: quants-lab-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    labels:
+      com.quants-lab.service: "node-exporter"
+      com.quants-lab.description: "System metrics exporter"
+
+networks:
+  monitoring:
+    name: quants-lab-monitoring
+    driver: bridge
+
+volumes:
+  prometheus-data:
+    name: quants-lab-prometheus-data
+  grafana-data:
+    name: quants-lab-grafana-data
+  alertmanager-data:
+    name: quants-lab-alertmanager-data
+

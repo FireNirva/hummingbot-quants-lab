@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # MEXC Collector
+  - job_name: 'orderbook-collector-mexc'
+    static_configs:
+      - targets: ['host.docker.internal:8001']
+        labels:
+          collector: 'mexc'
+          exchange: 'mexc'
+          instance: 'local'
+
+  # Gate.io Collector
+  - job_name: 'orderbook-collector-gateio'
+    static_configs:
+      - targets: ['host.docker.internal:8002']
+        labels:
+          collector: 'gateio'
+          exchange: 'gate_io'
+          instance: 'local'
+
+  # Node Exporter (系统指标)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']

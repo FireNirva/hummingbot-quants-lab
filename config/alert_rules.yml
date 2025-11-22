@@ -1,0 +1,294 @@
+# Prometheus 告警规则
+# Orderbook 数据收集系统
+
+groups:
+  # === 连接状态告警 ===
+  - name: connection_alerts
+    interval: 30s
+    rules:
+      - alert: WebSocketDisconnected
+        expr: orderbook_collector_connection_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: websocket
+          category: connectivity
+        annotations:
+          summary: "WebSocket连接断开"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 断开连接超过1分钟"
+          runbook_url: "https://docs.example.com/runbooks/websocket-disconnected"
+      
+      - alert: WebSocketReconnectingTooLong
+        expr: orderbook_collector_connection_status == 2
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+          category: connectivity
+        annotations:
+          summary: "WebSocket重连时间过长"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 重连中超过5分钟"
+  
+  # === 数据质量告警 ===
+  - name: data_quality_alerts
+    interval: 30s
+    rules:
+      - alert: DataStale
+        expr: (time() - orderbook_collector_last_message_timestamp) > 300
+        for: 1m
+        labels:
+          severity: warning
+          component: data-quality
+          category: freshness
+        annotations:
+          summary: "数据过期"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 超过5分钟无新数据 ({{ $value }}秒)"
+      
+      - alert: DataVeryStale
+        expr: (time() - orderbook_collector_last_message_timestamp) > 600
+        for: 1m
+        labels:
+          severity: critical
+          component: data-quality
+          category: freshness
+        annotations:
+          summary: "数据严重过期"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 超过10分钟无新数据"
+      
+      - alert: CorruptedFilesDetected
+        expr: orderbook_collector_corrupted_files > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: data-integrity
+          category: corruption
+        annotations:
+          summary: "检测到损坏的文件"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 有 {{ $value }} 个损坏的Parquet文件"
+  
+  # === 错误率告警 ===
+  - name: error_rate_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(orderbook_collector_messages_failed_total[5m]) /
+            (rate(orderbook_collector_messages_processed_total[5m]) + 
+             rate(orderbook_collector_messages_failed_total[5m]))
+          ) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: data-processing
+          category: errors
+        annotations:
+          summary: "高错误率"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 错误率超过10% ({{ $value | humanizePercentage }})"
+      
+      - alert: VeryHighErrorRate
+        expr: |
+          (
+            rate(orderbook_collector_messages_failed_total[5m]) /
+            (rate(orderbook_collector_messages_processed_total[5m]) + 
+             rate(orderbook_collector_messages_failed_total[5m]))
+          ) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+          component: data-processing
+          category: errors
+        annotations:
+          summary: "严重高错误率"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 错误率超过50%"
+      
+      - alert: ContinuousErrors
+        expr: |
+          increase(orderbook_collector_messages_failed_total[10m]) > 100
+        for: 1m
+        labels:
+          severity: warning
+          component: data-processing
+          category: errors
+        annotations:
+          summary: "持续错误"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 10分钟内累积超过100个错误"
+  
+  # === 序列号间隙告警 ===
+  - name: sequence_gap_alerts
+    interval: 1m
+    rules:
+      - alert: FrequentCriticalGaps
+        expr: |
+          rate(orderbook_collector_sequence_gaps_total{gap_size_bucket="critical"}[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          component: data-quality
+          category: sequence
+        annotations:
+          summary: "频繁的严重序列号间隙"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 出现频繁的严重间隙 (>100)"
+      
+      - alert: TooManySequenceGaps
+        expr: |
+          sum by (exchange, symbol) (
+            rate(orderbook_collector_sequence_gaps_total[5m])
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: data-quality
+          category: sequence
+        annotations:
+          summary: "序列号间隙过多"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 每秒平均>1个间隙"
+  
+  # === 性能告警 ===
+  - name: performance_alerts
+    interval: 1m
+    rules:
+      - alert: SlowMessageProcessing
+        expr: |
+          histogram_quantile(0.95, 
+            rate(orderbook_collector_message_processing_seconds_bucket[5m])
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+          category: latency
+        annotations:
+          summary: "消息处理缓慢"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} P95处理延迟超过1秒 ({{ $value }}秒)"
+      
+      - alert: VerySlowMessageProcessing
+        expr: |
+          histogram_quantile(0.95, 
+            rate(orderbook_collector_message_processing_seconds_bucket[5m])
+          ) > 5.0
+        for: 2m
+        labels:
+          severity: critical
+          component: performance
+          category: latency
+        annotations:
+          summary: "消息处理严重缓慢"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} P95处理延迟超过5秒"
+      
+      - alert: LargeBufferSize
+        expr: orderbook_collector_buffer_size > 900
+        for: 2m
+        labels:
+          severity: warning
+          component: performance
+          category: buffer
+        annotations:
+          summary: "缓冲区接近满载"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 缓冲区大小: {{ $value }}/1000"
+      
+      - alert: BufferFull
+        expr: orderbook_collector_buffer_size >= 1000
+        for: 30s
+        labels:
+          severity: critical
+          component: performance
+          category: buffer
+        annotations:
+          summary: "缓冲区已满"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 缓冲区已满，可能丢失数据"
+  
+  # === 存储告警 ===
+  - name: storage_alerts
+    interval: 5m
+    rules:
+      - alert: HighDiskUsage
+        expr: orderbook_collector_disk_usage_bytes > 50 * 1024 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+          category: disk
+        annotations:
+          summary: "磁盘使用量高"
+          description: "{{ $labels.exchange }} 使用 {{ $value | humanize }}B 磁盘空间"
+      
+      - alert: VeryHighDiskUsage
+        expr: orderbook_collector_disk_usage_bytes > 100 * 1024 * 1024 * 1024
+        for: 1m
+        labels:
+          severity: critical
+          component: storage
+          category: disk
+        annotations:
+          summary: "磁盘使用量严重过高"
+          description: "{{ $labels.exchange }} 使用超过100GB磁盘空间"
+      
+      - alert: SlowFileWrites
+        expr: |
+          histogram_quantile(0.95, 
+            rate(orderbook_collector_file_write_seconds_bucket[5m])
+          ) > 5.0
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+          category: io
+        annotations:
+          summary: "文件写入缓慢"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} P95文件写入延迟>5秒"
+  
+  # === 数据流量告警 ===
+  - name: throughput_alerts
+    interval: 1m
+    rules:
+      - alert: LowMessageRate
+        expr: |
+          rate(orderbook_collector_messages_received_total[5m]) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: data-flow
+          category: throughput
+        annotations:
+          summary: "消息速率过低"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 消息速率<0.1/秒，可能存在问题"
+      
+      - alert: NoDataReceived
+        expr: |
+          rate(orderbook_collector_messages_received_total[10m]) == 0
+        for: 3m
+        labels:
+          severity: critical
+          component: data-flow
+          category: throughput
+        annotations:
+          summary: "完全无数据接收"
+          description: "{{ $labels.exchange }} {{ $labels.symbol }} 10分钟内完全无数据"
+  
+  # === 系统级告警（如果使用node-exporter）===
+  - name: system_alerts
+    interval: 1m
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+          category: cpu
+        annotations:
+          summary: "CPU使用率高"
+          description: "实例 {{ $labels.instance }} CPU使用率>80% ({{ $value }}%)"
+      
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+          category: memory
+        annotations:
+          summary: "内存使用率高"
+          description: "实例 {{ $labels.instance }} 内存使用率>90% ({{ $value }}%)"
+

@@ -1,0 +1,153 @@
+# Alertmanager 配置
+# 管理告警通知的路由和接收器
+
+global:
+  resolve_timeout: 5m
+  
+  # SMTP 配置（用于邮件通知）
+  # smtp_smarthost: 'smtp.gmail.com:587'
+  # smtp_from: 'alertmanager@example.com'
+  # smtp_auth_username: 'your-email@example.com'
+  # smtp_auth_password: 'your-app-password'
+  # smtp_require_tls: true
+
+# 模板文件（可选）
+# templates:
+#   - '/etc/alertmanager/templates/*.tmpl'
+
+# 告警路由配置
+route:
+  # 默认接收器
+  receiver: 'default-receiver'
+  
+  # 分组配置
+  group_by: ['alertname', 'exchange', 'symbol']
+  group_wait: 30s        # 等待30秒收集同组告警
+  group_interval: 5m     # 每5分钟发送一次分组告警更新
+  repeat_interval: 4h    # 重复未解决告警间隔4小时
+  
+  # 子路由 - 根据严重程度路由
+  routes:
+    # 严重告警 - 立即通知
+    - receiver: 'critical-alerts'
+      match:
+        severity: critical
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 1h
+      continue: false  # 不继续匹配其他路由
+    
+    # 警告告警 - 延迟通知
+    - receiver: 'warning-alerts'
+      match:
+        severity: warning
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 12h
+      continue: false
+    
+    # 按组件路由（可选）
+    - receiver: 'connectivity-alerts'
+      match:
+        category: connectivity
+      group_wait: 15s
+      repeat_interval: 2h
+      continue: true  # 继续匹配其他路由
+
+# 接收器配置
+receivers:
+  # 默认接收器 - 仅记录日志
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://localhost:9999/webhook'  # 可选的webhook
+        send_resolved: true
+
+  # 严重告警接收器
+  - name: 'critical-alerts'
+    # 邮件通知
+    email_configs:
+      - to: 'admin@example.com'
+        # from: 'alertmanager@example.com'  # 使用全局配置
+        headers:
+          Subject: '🚨 [CRITICAL] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>严重告警</h2>
+          <p><strong>告警名称:</strong> {{ .GroupLabels.alertname }}</p>
+          <p><strong>交易所:</strong> {{ .GroupLabels.exchange }}</p>
+          <p><strong>交易对:</strong> {{ .GroupLabels.symbol }}</p>
+          <p><strong>描述:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>时间:</strong> {{ .StartsAt }}</p>
+        send_resolved: true
+    
+    # Webhook 通知（可用于集成Telegram, Slack等）
+    webhook_configs:
+      - url: 'http://localhost:9999/critical'
+        send_resolved: true
+    
+    # Telegram 通知（需要配置）
+    # telegram_configs:
+    #   - bot_token: 'YOUR_BOT_TOKEN'
+    #     chat_id: YOUR_CHAT_ID
+    #     message: |
+    #       🚨 CRITICAL ALERT
+    #       Alert: {{ .GroupLabels.alertname }}
+    #       Exchange: {{ .GroupLabels.exchange }}
+    #       Symbol: {{ .GroupLabels.symbol }}
+    #       Description: {{ .CommonAnnotations.description }}
+    #       Started: {{ .StartsAt }}
+    #     send_resolved: true
+    
+    # Slack 通知（需要配置）
+    # slack_configs:
+    #   - api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+    #     channel: '#critical-alerts'
+    #     title: '🚨 Critical Alert: {{ .GroupLabels.alertname }}'
+    #     text: |
+    #       *Exchange:* {{ .GroupLabels.exchange }}
+    #       *Symbol:* {{ .GroupLabels.symbol }}
+    #       *Description:* {{ .CommonAnnotations.description }}
+    #     send_resolved: true
+
+  # 警告告警接收器
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'team@example.com'
+        headers:
+          Subject: '⚠️ [WARNING] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>警告告警</h2>
+          <p><strong>告警名称:</strong> {{ .GroupLabels.alertname }}</p>
+          <p><strong>交易所:</strong> {{ .GroupLabels.exchange }}</p>
+          <p><strong>交易对:</strong> {{ .GroupLabels.symbol }}</p>
+          <p><strong>描述:</strong> {{ .CommonAnnotations.description }}</p>
+        send_resolved: true
+
+  # 连接性告警接收器
+  - name: 'connectivity-alerts'
+    webhook_configs:
+      - url: 'http://localhost:9999/connectivity'
+        send_resolved: true
+
+# 告警抑制规则
+inhibit_rules:
+  # 如果有严重告警，抑制相同来源的警告告警
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['exchange', 'symbol']
+  
+  # 如果WebSocket断开，抑制数据过期告警（因为根本原因是断开）
+  - source_match:
+      alertname: 'WebSocketDisconnected'
+    target_match:
+      alertname: 'DataStale'
+    equal: ['exchange', 'symbol']
+  
+  # 如果数据严重过期，抑制普通过期告警
+  - source_match:
+      alertname: 'DataVeryStale'
+    target_match:
+      alertname: 'DataStale'
+    equal: ['exchange', 'symbol']
+
