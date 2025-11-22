@@ -6,8 +6,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 
 from fastapi import FastAPI, HTTPException, Depends, Query, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
+from prometheus_client import REGISTRY, generate_latest
 
 from core.tasks.orchestrator import TaskOrchestrator
 from core.tasks.base import TaskStatus, TaskContext
@@ -130,6 +131,18 @@ async def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "orchestrator_initialized": orchestrator is not None
     }
+
+
+# Prometheus metrics endpoint
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    """
+    Prometheus metrics endpoint.
+    
+    Exposes all Prometheus metrics in the default registry,
+    including orderbook collector metrics.
+    """
+    return generate_latest(REGISTRY)
 
 
 # Task management endpoints
